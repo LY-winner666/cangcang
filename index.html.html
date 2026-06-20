@@ -1,0 +1,2796 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>仓仓单词 - 互动学习系统</title>
+    <style>
+        :root {
+            --bg: #fafaf7;
+            --card: #ffffff;
+            --text: #3d3d3d;
+            --sub: #7a7a7a;
+            --green: #b8d8c8;
+            --green-dark: #8cb89e;
+            --red: #f0c4c4;
+            --red-dark: #d49595;
+            --blue: #c4d4f0;
+            --blue-dark: #95aed4;
+            --gold: #f0e4c4;
+            --border: #e8e5e0;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            --radius: 14px;
+            --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: var(--font);
+            background: #f0ede8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+        #app {
+            width: 100%;
+            max-width: 420px;
+            aspect-ratio: 9 / 16;
+            max-height: 95vh;
+            background: var(--bg);
+            border-radius: 22px;
+            box-shadow: var(--shadow), 0 0 0 1px var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        .page {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 14px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .page.active {
+            display: flex;
+        }
+        .page-header {
+            text-align: center;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text);
+            padding: 6px 0 10px;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            z-index: 5;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 4px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 11px 18px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            transition: all 0.2s;
+            font-family: var(--font);
+            color: #fff;
+            background: #b0b8c8;
+            white-space: nowrap;
+            min-width: 60px;
+        }
+        .btn:active {
+            transform: scale(0.96);
+            opacity: 0.85;
+        }
+        .btn.primary {
+            background: #7b9eb3;
+        }
+        .btn.success {
+            background: #8cb89e;
+        }
+        .btn.warn {
+            background: #d49595;
+        }
+        .btn.small {
+            padding: 7px 13px;
+            font-size: 0.8rem;
+            border-radius: 18px;
+        }
+        .btn.tiny {
+            padding: 5px 10px;
+            font-size: 0.7rem;
+            border-radius: 14px;
+            min-width: auto;
+        }
+        .input {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 22px;
+            border: 1.5px solid var(--border);
+            font-size: 0.9rem;
+            background: var(--card);
+            font-family: var(--font);
+            outline: none;
+            transition: border 0.2s;
+        }
+        .input:focus {
+            border-color: #7b9eb3;
+        }
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 14px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        .row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #e8e5e0;
+            color: var(--text);
+        }
+        .badge.green {
+            background: var(--green);
+            color: #3d5a48;
+        }
+        .badge.red {
+            background: var(--red);
+            color: #5a3d3d;
+        }
+        .word-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: var(--card);
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: 1px solid transparent;
+            gap: 8px;
+            user-select: none;
+        }
+        .word-row:active {
+            background: #f5f3ef;
+        }
+        .word-row.correct {
+            background: #dcece2;
+            border-color: #b8d8c8;
+        }
+        .word-row.wrong {
+            background: #fce8e8;
+            border-color: #f0c4c4;
+        }
+        .word-text {
+            flex: 1;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text);
+        }
+        .word-meaning {
+            font-weight: 400;
+            font-size: 0.8rem;
+            color: var(--sub);
+            flex: 1;
+            text-align: left;
+        }
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            background: #f0ede8;
+        }
+        .icon-btn:active {
+            transform: scale(0.9);
+        }
+        .fixed-bar {
+            position: sticky;
+            bottom: 0;
+            background: var(--bg);
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border-top: 1px solid var(--border);
+            z-index: 5;
+            flex-wrap: wrap;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .grid-5 {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+        .review-box {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 14px;
+            border: 2px dashed var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            background: var(--card);
+            color: var(--text);
+            text-align: center;
+            padding: 4px;
+        }
+        .review-box:active {
+            background: #e8e5e0;
+        }
+        .review-box.filled {
+            border-style: solid;
+            border-color: #7b9eb3;
+            background: #eef3f7;
+        }
+        .review-box.done-box {
+            border-color: #8cb89e;
+            background: #dcece2;
+            color: #3d5a48;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal {
+            background: #fff;
+            border-radius: 18px;
+            padding: 20px;
+            width: 85%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+        .modal h3 {
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+        .modal .btn {
+            margin: 5px;
+        }
+        .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            background: #e8e5e0;
+            margin: 2px;
+        }
+        .scroll-list {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        @media (max-width: 440px) {
+            #app {
+                max-width: 100%;
+                border-radius: 0;
+                max-height: 100vh;
+                aspect-ratio: auto;
+                height: 100vh;
+            }
+            .page {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 所有页面动态渲染 -->
+    </div>
+    <div id="overlay-container"></div>
+
+    <script>
+        (function() {
+            // ==================== 数据管理 ====================
+            const STORAGE_KEY = 'cangcang_words_data_v3';
+            let appData = {
+                teachers: [],
+                adminTotalHoursMap: {}, // teacherId -> totalHours set by admin
+                currentUser: null,
+                userType: null, // 'teacher' | 'student' | 'admin'
+            };
+
+            function saveData() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+            }
+
+            function saveLearningState() {
+                if (!appData.currentUser || (appData.userType !== 'teacher' && appData.userType !== 'student')) return;
+                const type = viewState.learnType || pausedLearnType || 'new';
+                const state = {
+                    pausedView: viewState.pausedView || currentView,
+                    currentView: currentView,
+                    precheckWords: viewState.precheckWords ? viewState.precheckWords.map(w => ({...w})) : null,
+                    learningGroups: viewState.learningGroups ? viewState.learningGroups.map(g => g.map(w => ({...w}))) : null,
+                    currentGroupIndex: viewState.currentGroupIndex,
+                    snipWords: viewState.snipWords ? [...viewState.snipWords] : null,
+                    snipRemaining: viewState.snipRemaining ? viewState.snipRemaining.map(w => ({...w})) : null,
+                    checkoffRemaining: viewState.checkoffRemaining ? viewState.checkoffRemaining.map(w => ({...w})) : null,
+                    postcheckWords: viewState.postcheckWords ? viewState.postcheckWords.map(w => ({...w})) : null,
+                    learnDuration: viewState.learnDuration,
+                    learnStartTime: viewState.learnStartTime,
+                    learnType: viewState.learnType,
+                    studentId: selectedStudentIdGlobal,
+                    bankId: selectedBankIdGlobal,
+                };
+                if (type === 'review') {
+                    state.reviewTargetWords = viewState.reviewTargetWords ? [...viewState.reviewTargetWords] : null;
+                    state.reviewTargetBox = viewState.reviewTargetBox;
+                    state._rPostWords = viewState._rPostWords ? viewState._rPostWords.map(w => ({...w})) : null;
+                    appData.learningStateReview = state;
+                } else {
+                    appData.learningStateNew = state;
+                }
+                saveData();
+            }
+
+            function saveTimerState() {
+                if (pausedRemainingTime > 0) {
+                    appData.timerState = {
+                        pausedRemainingTime: pausedRemainingTime,
+                        pausedLearnType: pausedLearnType,   // 保存是为了区分进度（学习进度仍需类型）
+                    };
+                } else {
+                    appData.timerState = null;
+                }
+                saveData();
+            }
+
+            function restoreTimerState() {
+                if (appData.timerState && appData.timerState.pausedRemainingTime > 0) {
+                    pausedRemainingTime = appData.timerState.pausedRemainingTime;
+                    pausedLearnType = appData.timerState.pausedLearnType;
+                    appData.timerState = null;   // 立即清除，避免再次进入时重复恢复
+                    saveData();
+                    return true;
+                }
+                return false;
+            }
+
+            function restoreLearningState() {
+                const state = appData.learningStateNew || appData.learningStateReview;
+                if (state) {
+                    selectedStudentIdGlobal = state.studentId || selectedStudentIdGlobal;
+                    selectedBankIdGlobal = state.bankId || selectedBankIdGlobal;
+                }
+            }
+
+            function loadData() {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    try {
+                        const parsed = JSON.parse(raw);
+                        appData = { ...appData, ...parsed };
+                    } catch (e) { console.warn('数据加载失败，使用默认数据'); }
+                }
+                // 初始化管理员
+                if (!appData.teachers.find(t => t.username === '17872702990')) {
+                    appData.teachers.push({
+                        id: 'admin_001',
+                        username: '17872702990',
+                        password: 'LYwinner',
+                        role: 'admin',
+                        totalHours: 9999,
+                        remainingHours: 9999,
+                        createdDate: new Date().toISOString(),
+                        students: [],
+                        wordBanks: [],
+                        learningRecords: [],
+                    });
+                    appData.adminTotalHoursMap['admin_001'] = 9999;
+                }
+                // 确保adminTotalHoursMap存在
+                if (!appData.adminTotalHoursMap) appData.adminTotalHoursMap = {};
+                saveData();
+            }
+
+            function getTeacherById(id) { return appData.teachers.find(t => t.id === id); }
+
+            function getStudentById(teacher, studentId) { return teacher.students.find(s => s.id === studentId); }
+
+            function getWordBankById(teacher, wbId) { return teacher.wordBanks.find(w => w.id === wbId); }
+
+            function generateId() { return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6); }
+
+            // ==================== 音效系统 ====================
+            let audioCtx = null;
+
+            function getAudioCtx() {
+                if (!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+                return audioCtx;
+            }
+
+            function playBeep(freq, duration, type = 'sine', vol = 0.15) {
+                try {
+                    const ctx = getAudioCtx();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                    gain.gain.setValueAtTime(vol, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + duration);
+                } catch (e) { /* 静默 */ }
+            }
+
+            function playSnipSound() { playBeep(800, 0.08, 'sawtooth', 0.1);
+                setTimeout(() => playBeep(600, 0.06, 'sawtooth', 0.08), 60); }
+
+            function playDingSound() { playBeep(1200, 0.15, 'sine', 0.12);
+                setTimeout(() => playBeep(1600, 0.2, 'sine', 0.1), 100); }
+
+            function speakWord(word) {
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    const u = new SpeechSynthesisUtterance(word);
+                    u.lang = 'en-US';
+                    u.rate = 0.85;
+                    u.pitch = 1;
+                    u.volume = 0.8;
+                    window.speechSynthesis.speak(u);
+                }
+            }
+
+            // ==================== 词库解析 ====================
+            function parseWordLine(line) {
+                line = line.trim();
+                if (!line) return null;
+                // 使用逗号分隔，仅分割第一个逗号（防止释义内出现英文逗号）
+                const commaIndex = line.indexOf(',');
+                if (commaIndex === -1) return null;
+                const english = line.substring(0, commaIndex).trim();
+                const meaning = line.substring(commaIndex + 1).trim();
+                if (english && meaning) {
+                    return {
+                       english,
+                        chinese: meaning,       // 完整释义，如 "n. 苹果" 或 "因为"
+                        partOfSpeech: ''        // 不再需要单独词性
+                    };
+                }
+                return null;
+            }
+
+            function parseTxtContent(content) {
+                const lines = content.split(/[\r\n]+/);
+                const words = [];
+                for (const line of lines) {
+                    const parsed = parseWordLine(line);
+                    if (parsed) words.push({ ...parsed, id: generateId() });
+                }
+                return words;
+            }
+
+            // ==================== 视图渲染 ====================
+            const appEl = document.getElementById('app');
+            const overlayEl = document.getElementById('overlay-container');
+            let currentView = 'login';
+            let viewState = {}; // 存储当前视图状态
+            let pausedRemainingTime = 0;   // 暂停时剩余的秒数
+            let pausedLearnType = null;    // 'new' 或 'review'
+            let selectedBankIdGlobal = null;
+            let selectedStudentIdGlobal = null;   
+
+            function renderView(viewName, state = {}) {
+                currentView = viewName;
+                Object.assign(viewState, state);
+                appEl.innerHTML = '';
+                overlayEl.innerHTML = '';
+                switch (viewName) {
+                    case 'login':
+                        renderLogin();
+                        break;
+                    case 'teacher_students':
+                        renderTeacherStudents();
+                        break;
+                    case 'teacher_manage_students':
+                        renderTeacherManageStudents();
+                        break;
+                    case 'teacher_home':
+                        renderTeacherHome();
+                        break;
+                    case 'teacher_import':
+                        renderTeacherImport();
+                        break;
+                    case 'teacher_bank_select':
+                        renderTeacherBankSelect();
+                        break;
+                    case 'teacher_precheck':
+                        renderTeacherPrecheck();
+                        break;
+                    case 'teacher_learning':
+                        renderTeacherLearning();
+                        break;
+                    case 'teacher_snip':
+                        renderTeacherSnip();
+                        break;
+                    case 'teacher_checkoff':
+                        renderTeacherCheckoff();
+                        break;
+                    case 'teacher_postcheck':
+                        renderTeacherPostcheck();
+                        break;
+                    case 'teacher_review_home':
+                        renderTeacherReviewHome();
+                        break;
+                    case 'teacher_review_precheck':
+                        renderTeacherReviewPrecheck();
+                        break;
+                    case 'teacher_review_learning':
+                        renderTeacherReviewLearning();
+                        break;
+                    case 'teacher_review_snip':
+                        renderTeacherReviewSnip();
+                        break;
+                    case 'teacher_review_checkoff':
+                        renderTeacherReviewCheckoff();
+                        break;
+                    case 'teacher_review_postcheck':
+                        renderTeacherReviewPostcheck();
+                        break;
+                    case 'teacher_print':
+                        renderTeacherPrint();
+                        break;
+                    case 'student_home':
+                        renderStudentHome();
+                        break;
+                    case 'student_review':
+                        renderStudentReview();
+                        break;
+                    case 'student_records':
+                        renderStudentRecords();
+                        break;
+                    case 'admin_panel':
+                        renderAdminPanel();
+                        break;
+                    default:
+                        renderLogin();
+                }
+                // 滚动到顶部
+                const activePage = appEl.querySelector('.page.active');
+                if (activePage) activePage.scrollTop = 0;
+            }
+
+            function showOverlay(html) {
+                overlayEl.innerHTML = html;
+            }
+
+            function hideOverlay() { overlayEl.innerHTML = ''; }
+
+            function showToast(msg) {
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:100;
+                    background:#3d3d3d;color:#fff;padding:10px 20px;border-radius:20px;font-size:0.9rem;
+                    opacity:0;transition:opacity 0.3s;pointer-events:none;font-family:var(--font);
+                `;
+                toast.textContent = msg;
+                document.body.appendChild(toast);
+                requestAnimationFrame(() => { toast.style.opacity = '1'; });
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 2000);
+            }
+
+            // ==================== 登录页面 ====================
+            function renderLogin() {
+                appEl.innerHTML = `
+                <div class="page active" style="justify-content:center;align-items:center;gap:16px;">
+                    <div style="font-size:2rem;font-weight:800;color:#5a7a6a;letter-spacing:2px;">仓仓单词</div>
+                    <div style="font-size:0.9rem;color:var(--sub);margin-bottom:20px;">互动学习系统</div>
+                    <input class="input" id="login-username" placeholder="请输入账号" style="max-width:280px;">
+                    <input class="input" id="login-password" type="password" placeholder="请输入密码" style="max-width:280px;">
+                    <div class="row" style="gap:8px;justify-content:center;">
+                        <button class="btn primary" onclick="window._doLogin('teacher')">教师登录</button>
+                        <button class="btn success" onclick="window._doLogin('student')">学生登录</button>
+                        <button class="btn" style="background:#c4b89e;" onclick="window._doLogin('admin')">管理员登录</button>
+                    </div>
+                </div>`;
+            }
+
+            window._doLogin = function(role) {
+                const username = document.getElementById('login-username')?.value.trim();
+                const password = document.getElementById('login-password')?.value.trim();
+                if (!username || !password) { showToast('请输入账号和密码'); return; }
+                if (role === 'admin') {
+                    const admin = appData.teachers.find(t => t.username === username && t.password === password && t
+                        .role === 'admin');
+                    if (admin) {
+                        appData.currentUser = admin;
+                        appData.userType = 'admin';
+                        restoreLearningState();
+                        saveData();
+                        renderView('admin_panel');
+                    } else { showToast('管理员账号或密码错误'); }
+                    return;
+                }
+                if (role === 'teacher') {
+                    const teacher = appData.teachers.find(t => t.username === username && t.password === password && t
+                        .role !== 'admin');
+                    if (teacher) {
+                        appData.currentUser = teacher;
+                        appData.userType = 'teacher';
+                        restoreLearningState();
+                        saveData();
+                        renderView('teacher_students');
+                    } else { showToast('教师账号或密码错误'); }
+                    return;
+                }
+                if (role === 'student') {
+                    for (const t of appData.teachers) {
+                        const s = t.students.find(s => s.username === username && s.password === password);
+                        if (s) {
+                            appData.currentUser = { ...s, teacherId: t.id };
+                            appData.userType = 'student';
+                            restoreLearningState();
+                            saveData();
+                            renderView('student_home');
+                            return;
+                        }
+                    }
+                    showToast('学生账号或密码错误');
+                }
+            };
+
+            // ==================== 教师端 - 选择/管理学生 ====================
+            function renderTeacherStudents() {
+                const teacher = appData.currentUser;
+                if (!teacher || appData.userType !== 'teacher') { renderLogin(); return; }
+                const freshTeacher = getTeacherById(teacher.id);
+                if (!freshTeacher) { renderLogin(); return; }
+                appData.currentUser = freshTeacher;
+                const students = freshTeacher.students || [];
+                students.sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
+                let studentListHtml = students.map(s => `
+                    <div class="card row" style="justify-content:space-between;cursor:pointer;" onclick="window._selectStudent('${s.id}')">
+                        <div>
+                            <strong>${s.name}</strong>
+                            <span style="color:var(--sub);font-size:0.8rem;"> 课时:${(s.remainingHours||0).toFixed(1)}h</span>
+                        </div>
+                        <span style="color:var(--sub);font-size:0.75rem;">${s.username}</span>
+                    </div>
+                `).join('');
+                if (!studentListHtml) studentListHtml =
+                    '<div style="text-align:center;color:var(--sub);padding:40px;">暂无学生，请先管理学生添加</div>';
+
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header">选择学生</div>
+                    <div style="font-size:0.8rem;color:var(--sub);text-align:center;">教师总课时: ${(freshTeacher.remainingHours||0).toFixed(1)}h</div>
+                    <div class="scroll-list" style="flex:1;">${studentListHtml}</div>
+                    <button class="btn primary" style="width:100%;" onclick="renderView('teacher_manage_students')">管理学生</button>
+                    <button class="btn" style="width:100%;background:#c4b89e;" onclick="saveLearningState(); appData.currentUser=null; appData.userType=null; saveData(); renderView('login');">退出登录</button>
+                </div>`;
+            }
+
+            window._selectStudent = function(studentId) {
+                const teacher = appData.currentUser;
+                const student = getStudentById(teacher, studentId);
+                if (!student) return;
+                selectedStudentIdGlobal = studentId;          // 存入全局变量
+                renderView('teacher_home');
+            };
+
+            function renderTeacherManageStudents() {
+                const teacher = appData.currentUser;
+                if (!teacher || appData.userType !== 'teacher') { renderLogin(); return; }
+                const freshTeacher = getTeacherById(teacher.id);
+                appData.currentUser = freshTeacher;
+                const students = [...(freshTeacher.students || [])].sort((a, b) => new Date(b.createdDate) - new Date(a
+                    .createdDate));
+                let listHtml = students.map(s => `
+                    <div class="card row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;">
+                        <div style="flex:1;min-width:120px;">
+                            <strong>${s.name}</strong> <span style="font-size:0.7rem;color:var(--sub);">${s.username}</span>
+                            <br><span style="font-size:0.75rem;">剩余课时:${(s.remainingHours||0).toFixed(1)}h | 累计分配:${(s.allocatedHours||0).toFixed(1)}h</span>
+                        </div>
+                        <div class="row" style="gap:4px;">
+                            <button class="btn tiny success" onclick="window._rechargeStudent('${s.id}')">充值</button>
+                            <button class="btn tiny warn" onclick="window._deleteStudent('${s.id}')">删除</button>
+                        </div>
+                    </div>
+                `).join('');
+                if (!listHtml) listHtml =
+                    '<div style="text-align:center;color:var(--sub);padding:30px;">暂无学生</div>';
+
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header">管理学生</div>
+                    <div style="font-size:0.8rem;color:var(--sub);text-align:center;">教师总课时: ${(freshTeacher.remainingHours||0).toFixed(1)}h | 总池:${(freshTeacher.totalHours||0).toFixed(1)}h</div>
+                    <input class="input" id="search-student" placeholder="搜索学生..." oninput="window._filterStudents()">
+                    <div class="scroll-list" id="student-list-container" style="flex:1;">${listHtml}</div>
+                    <div class="card row" style="gap:8px;flex-wrap:wrap;">
+                        <input class="input" id="new-student-name" placeholder="学生姓名" style="flex:1;min-width:80px;">
+                        <input class="input" id="new-student-username" placeholder="账号" style="flex:1;min-width:80px;">
+                        <input class="input" id="new-student-password" placeholder="密码" style="flex:1;min-width:80px;">
+                        <button class="btn primary small" onclick="window._addStudent()">添加</button>
+                    </div>
+                    <button class="btn" style="width:100%;" onclick="renderView('teacher_students')">返回</button>
+                </div>`;
+                window._allStudents = students;
+            }
+
+            window._filterStudents = function() {
+                const q = (document.getElementById('search-student')?.value || '').toLowerCase();
+                const container = document.getElementById('student-list-container');
+                if (!container || !window._allStudents) return;
+                const filtered = window._allStudents.filter(s => s.name.toLowerCase().includes(q) || s.username
+                    .toLowerCase().includes(q));
+                container.innerHTML = filtered.map(s => `
+                    <div class="card row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;">
+                        <div style="flex:1;min-width:120px;">
+                            <strong>${s.name}</strong> <span style="font-size:0.7rem;color:var(--sub);">${s.username}</span>
+                            <br><span style="font-size:0.75rem;">剩余:${(s.remainingHours||0).toFixed(1)}h | 累计:${(s.allocatedHours||0).toFixed(1)}h</span>
+                        </div>
+                        <div class="row" style="gap:4px;">
+                            <button class="btn tiny success" onclick="window._rechargeStudent('${s.id}')">充值</button>
+                            <button class="btn tiny warn" onclick="window._deleteStudent('${s.id}')">删除</button>
+                        </div>
+                    </div>
+                `).join('') || '<div style="text-align:center;color:var(--sub);padding:30px;">无匹配学生</div>';
+            };
+
+            window._addStudent = function() {
+                const teacher = appData.currentUser;
+                const name = document.getElementById('new-student-name')?.value.trim();
+                const username = document.getElementById('new-student-username')?.value.trim();
+                const password = document.getElementById('new-student-password')?.value.trim();
+                if (!name || !username || !password) { showToast('请填写完整信息'); return; }
+                const freshTeacher = getTeacherById(teacher.id);
+                if (freshTeacher.students.find(s => s.username === username)) { showToast('账号已存在'); return; }
+                freshTeacher.students.push({
+                    id: generateId(),
+                    name,
+                    username,
+                    password,
+                    allocatedHours: 0,
+                    remainingHours: 0,
+                    createdDate: new Date().toISOString(),
+                    wordProgress: {}, // wordBankId -> { wordId: { status:'learning'|'done', reviewCount:0, learnedDate, reviewDates:[] } }
+                });
+                appData.currentUser = freshTeacher;
+                saveData();
+                showToast('学生添加成功');
+                renderView('teacher_manage_students');
+            };
+
+            window._rechargeStudent = function(studentId) {
+                const teacher = appData.currentUser;
+                const freshTeacher = getTeacherById(teacher.id);
+                const student = getStudentById(freshTeacher, studentId);
+                if (!student) return;
+                const currentAllocated = student.allocatedHours || 0;
+                const teacherTotal = freshTeacher.totalHours || 0;
+                const maxRecharge = teacherTotal - currentAllocated;
+                if (maxRecharge <= 0) { showToast('教师总课时不足，无法划拨'); return; }
+                showOverlay(`
+                    <div class="modal">
+                        <h3>充值课时 - ${student.name}</h3>
+                        <p>当前累计分配:${currentAllocated.toFixed(1)}h | 教师总池:${teacherTotal.toFixed(1)}h</p>
+                        <p>最大可划拨:${maxRecharge.toFixed(1)}h</p>
+                        <input class="input" id="recharge-amount" type="number" step="0.5" min="0.5" max="${maxRecharge}" value="1" style="width:100px;text-align:center;">
+                        <p style="font-size:0.7rem;color:var(--sub);">单位：小时</p>
+                        <div class="row" style="justify-content:center;">
+                            <button class="btn success" onclick="window._confirmRecharge('${studentId}',${maxRecharge})">确认</button>
+                            <button class="btn" onclick="hideOverlay()">取消</button>
+                        </div>
+                    </div>
+                `);
+            };
+
+            window._confirmRecharge = function(studentId, maxRecharge) {
+                const amount = parseFloat(document.getElementById('recharge-amount')?.value);
+                if (!amount || amount <= 0 || amount > maxRecharge) { showToast('无效的课时数'); return; }
+                const teacher = appData.currentUser;
+                const freshTeacher = getTeacherById(teacher.id);
+                const student = getStudentById(freshTeacher, studentId);
+                if (!student) return;
+                student.allocatedHours = (student.allocatedHours || 0) + amount;
+                student.remainingHours = (student.remainingHours || 0) + amount;
+                appData.currentUser = freshTeacher;
+                saveData();
+                hideOverlay();
+                showToast(`成功划拨 ${amount}h 给 ${student.name}`);
+                renderView('teacher_manage_students');
+            };
+
+            window._deleteStudent = function(studentId) {
+                const teacher = appData.currentUser;
+                const freshTeacher = getTeacherById(teacher.id);
+                const student = getStudentById(freshTeacher, studentId);
+                if (!student) return;
+                const remaining = student.remainingHours || 0;
+                if (remaining > 0) {
+                    freshTeacher.remainingHours = (freshTeacher.remainingHours || 0) + remaining;
+                }
+                freshTeacher.students = freshTeacher.students.filter(s => s.id !== studentId);
+                appData.currentUser = freshTeacher;
+                saveData();
+                showToast(`已删除学生，归还 ${remaining.toFixed(1)}h 课时`);
+                renderView('teacher_manage_students');
+            };
+
+            // ==================== 教师端 - 首页 ====================
+            function renderTeacherHome() {
+                const teacher = appData.currentUser;
+                if (!teacher || appData.userType !== 'teacher') { renderLogin(); return; }
+                const freshTeacher = getTeacherById(teacher.id);
+                appData.currentUser = freshTeacher;
+                const studentId = selectedStudentIdGlobal;
+                const student = studentId ? getStudentById(freshTeacher, studentId) : null;
+                const studentName = student ? student.name : '未选择';
+                const studentHours = student ? (student.remainingHours || 0) : 0;
+
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header">🏠 首页</div>
+                    <div style="text-align:center;font-size:0.85rem;color:var(--sub);">
+                        学生: <strong>${studentName}</strong> | 剩余课时: <strong>${studentHours.toFixed(1)}h</strong>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:10px;flex:1;justify-content:center;">
+                        <button class="btn primary" style="width:100%;padding:16px;font-size:1.05rem;" onclick="renderView('teacher_import')">📥 导入词库</button>
+                        <button class="btn success" style="width:100%;padding:16px;font-size:1.05rem;" onclick="renderView('teacher_bank_select')">📚 词库选择</button>
+                        <button class="btn" style="width:100%;padding:16px;font-size:1.05rem;background:#7b9eb3;" onclick="window._startLearnNew()">🆕 学习新词</button>
+                        <button class="btn" style="width:100%;padding:16px;font-size:1.05rem;background:#c4b89e;" onclick="renderView('teacher_review_home')">🔄 开始复习</button>
+                        <button class="btn" style="width:100%;padding:16px;font-size:1.05rem;background:#b0b8c8;" onclick="renderView('teacher_print')">🖨️ 打印学习报告</button>
+                    </div>
+                    <button class="btn" style="width:100%;" onclick="renderView('teacher_students')">← 返回选择学生</button>
+                </div>`;
+            }
+
+            window._startLearnNew = function() {
+                const teacher = appData.currentUser;
+                const freshTeacher = getTeacherById(teacher.id);
+                appData.currentUser = freshTeacher;
+                const studentId = selectedStudentIdGlobal;
+                const student = studentId ? getStudentById(freshTeacher, studentId) : null;
+                if (!student) { showToast('请先选择学生'); return; }
+                if (!selectedBankIdGlobal) { showToast('请先在词库选择中选词库'); return; }
+                const bank = getWordBankById(freshTeacher, selectedBankIdGlobal);
+                if (!bank) { showToast('词库不存在'); return; }
+
+                // 原暂停恢复分支整体替换为 restoreTimerState 判断逻辑
+                if (restoreTimerState()) {
+                    // 共用倒计时，无论上次是学新还是复习，只要还有时间就继续
+                    viewState.learnTimerRemaining = pausedRemainingTime;
+                    viewState.learnTimerActive = true;
+                    pausedRemainingTime = 0;   // 清空全局，避免重复恢复
+                    pausedLearnType = null;
+
+                    // 恢复学新的学习进度（来自 learningStateNew）
+                    const ls = appData.learningStateNew;
+                    if (ls) {
+                        viewState.precheckWords = ls.precheckWords || [];
+                        viewState.learningGroups = ls.learningGroups || [];
+                        viewState.currentGroupIndex = ls.currentGroupIndex || 0;
+                        viewState.snipWords = ls.snipWords || [];
+                        viewState.snipRemaining = ls.snipRemaining || [];
+                        viewState.checkoffRemaining = ls.checkoffRemaining || [];
+                        viewState.postcheckWords = ls.postcheckWords || [];
+                        viewState.learnDuration = ls.learnDuration;
+                        viewState.learnStartTime = ls.learnStartTime;
+                        viewState.learnType = 'new';
+                    }
+                    // 自动跳转到保存时的视图
+                    let resumeView = viewState.pausedView || 'teacher_precheck';
+                    delete viewState.pausedView;
+
+                    // 剪纸条已完成 → 直接打钩
+                    if (resumeView === 'teacher_snip' && viewState.snipRemaining && viewState.snipRemaining.length === 0) {
+                        viewState.checkoffRemaining = viewState.snipWords ? [...viewState.snipWords] : [];
+                        resumeView = 'teacher_checkoff';
+                    }
+                    renderView(resumeView);
+                    // 打钩已完成 → 自动弹出选项
+                    if (resumeView === 'teacher_checkoff' && viewState.checkoffRemaining && viewState.checkoffRemaining.length === 0) {
+                        setTimeout(() => window._showPostSnipOptions(), 100);
+                    }
+                    window._startLearnTimer();
+                    return;
+                }
+
+                if ((student.remainingHours || 0) < 0.25) { showToast('课时不足，请充值'); return; }
+                showOverlay(`
+                    <div class="modal">
+                        <h3>选择上课时间</h3>
+                        <p>学生: ${student.name} | 剩余课时: ${(student.remainingHours||0).toFixed(1)}h</p>
+                        <div class="row" style="justify-content:center;">
+                            <button class="btn success" onclick="window._confirmDuration(0.5)">0.5小时</button>
+                            <button class="btn primary" onclick="window._confirmDuration(1)">1小时</button>
+                        </div>
+                        <button class="btn" style="margin-top:8px;" onclick="hideOverlay()">取消</button>
+                    </div>
+                `);
+            };
+
+            window._confirmDuration = function(hours) {
+                const teacher = appData.currentUser;
+                const freshTeacher = getTeacherById(teacher.id);
+                appData.currentUser = freshTeacher;
+                appData.learningStateNew = null;
+                const studentId = selectedStudentIdGlobal;
+                const student = getStudentById(freshTeacher, studentId);
+                if (!student || (student.remainingHours || 0) < hours) {
+                    hideOverlay();
+                    showToast('课时不足，请充值');
+                    return;
+                }
+                hideOverlay();
+                appData.timerState = null;
+                appData.learningStateNew = null;
+                saveData();
+                appData.learningState = null;
+                saveData();
+                viewState.learnDuration = hours;
+                viewState.learnStartTime = new Date().toISOString();
+                viewState.learnTimerRemaining = hours * 3600;
+                viewState.learnTimerActive = true;
+                viewState.learnType = 'new'; // 'new' or 'review'
+                viewState.precheckWords = [];
+                viewState.learningGroups = [];
+                viewState.currentGroupIndex = 0;
+                viewState.snipWords = [];
+                viewState.checkoffWords = [];
+                viewState.learnedInSession = []; // 本次学习中学前检测打钩的单词id
+                viewState.wrongInPrecheck = []; // 学前检测打叉的单词id
+                renderView('teacher_precheck');
+                window._startLearnTimer();
+            };
+
+            window._startLearnTimer = function() {
+                if (window._timerInterval) clearInterval(window._timerInterval);
+                window._timerInterval = setInterval(() => {
+                    if (!viewState.learnTimerActive) return;
+                    viewState.learnTimerRemaining--;
+                    if (viewState.learnTimerRemaining <= 0) {
+                        clearInterval(window._timerInterval);
+                        window._onTimerEnd();
+                    }
+                }, 1000);
+            };
+
+            window._onTimerEnd = function() {
+                viewState.learnTimerActive = false;
+                const teacher = appData.currentUser;
+                const freshTeacher = getTeacherById(teacher.id);
+                appData.currentUser = freshTeacher;
+                const studentId = selectedStudentIdGlobal;
+                const student = getStudentById(freshTeacher, studentId);
+
+                if (student && viewState.learnDuration) {
+                    const deduct = viewState.learnDuration;
+                    student.remainingHours = Math.max(0, (student.remainingHours || 0) - deduct);
+                    freshTeacher.remainingHours = Math.max(0, (freshTeacher.remainingHours || 0) - deduct);
+                }
+
+                // 如果是复习流程，根据已标记的单词更新复习次数
+                if (viewState.learnType === 'review' && student && selectedBankIdGlobal) {
+                    if (!student.wordProgress) student.wordProgress = {};
+                    if (!student.wordProgress[selectedBankIdGlobal]) student.wordProgress[selectedBankIdGlobal] = {};
+                    const prog = student.wordProgress[selectedBankIdGlobal];
+
+                    // 学前检测打钩的单词 + 学后检测打钩的单词（如果已经标记）
+                    const correctIds = new Set();
+                    // 学前检测
+                    if (viewState.precheckWords) {
+                        viewState.precheckWords.forEach(w => {
+                            if (w.userChoice === true) correctIds.add(w.id);
+                        });
+                    }
+                    // 学后检测（可能已进入）
+                    if (viewState._rPostWords) {
+                        viewState._rPostWords.forEach(w => {
+                            if (w.userChoice === true) correctIds.add(w.id);
+                        });
+                    }
+
+                    correctIds.forEach(wid => {
+                        if (prog[wid]) {
+                            prog[wid].reviewCount = (prog[wid].reviewCount || 0) + 1;
+                            prog[wid].reviewDates = prog[wid].reviewDates || [];
+                            prog[wid].reviewDates.push(new Date().toISOString());
+                           if (prog[wid].reviewCount >= 10) prog[wid].status = 'done';
+                        } else {
+                            prog[wid] = {
+                                status: 'learning',
+                                reviewCount: 1,
+                                learnedDate: new Date().toISOString(),
+                                reviewDates: [new Date().toISOString()],
+                                postponedDays: 0
+                            };
+                        }
+                    });
+                    saveData();
+                }
+
+                // 生成学习记录并更新学新单词的复习状态（仅学新流程）
+                window._archiveLearningSession();
+    
+                // 清除倒计时存档
+                appData.timerState = null;
+                saveData();
+    
+                renderView('teacher_home');
+            };
+
+            window._retryLearn = function() {
+                const teacher = appData.currentUser;
+                const freshTeacher = getTeacherById(teacher.id);
+                appData.currentUser = freshTeacher;
+                const studentId = selectedStudentIdGlobal;
+                const student = getStudentById(freshTeacher, studentId);
+                if (!student || (student.remainingHours || 0) < 0.25) {
+                    showToast('课时不足');
+                    renderView('teacher_home');
+                    return;
+                }
+                showOverlay(`
+                    <div class="modal">
+                        <h3>选择上课时间</h3>
+                        <p>剩余课时: ${(student.remainingHours||0).toFixed(1)}h</p>
+                        <div class="row" style="justify-content:center;">
+                            <button class="btn success" onclick="window._confirmDuration(0.5)">0.5小时</button>
+                            <button class="btn primary" onclick="window._confirmDuration(1)">1小时</button>
+                        </div>
+                        <button class="btn" style="margin-top:8px;" onclick="hideOverlay();renderView('teacher_home')">取消</button>
+                    </div>
+                `);
+            };
+
+            window._archiveLearningSession = function(skipRecord = false) {
+                const teacher = appData.currentUser;
+                const freshTeacher = getTeacherById(teacher.id);
+                appData.currentUser = freshTeacher;
+                const studentId = selectedStudentIdGlobal;
+                const student = getStudentById(freshTeacher, studentId);
+                const bankId = selectedBankIdGlobal;
+                if (!student || !bankId) return;
+                const clickedInLearning = window._clickedInLearning ? [...window._clickedInLearning] : [];
+                const sessionWords = [...new Set([...viewState.wrongInPrecheck, ...viewState.learnedInSession, ...clickedInLearning])];
+                if (sessionWords.length === 0) return;
+                if (!skipRecord) {
+                    const record = {
+                        id: generateId(),
+                        studentId,
+                        wordBankId: bankId,
+                        startTime: viewState.learnStartTime,
+                        duration: viewState.learnDuration,
+                        words: sessionWords,
+                        type: viewState.learnType || 'new',
+                    };
+                    if (!freshTeacher.learningRecords) freshTeacher.learningRecords = [];
+                    freshTeacher.learningRecords.push(record);
+                }
+                // 更新单词进度
+                if (!student.wordProgress) student.wordProgress = {};
+                if (!student.wordProgress[bankId]) student.wordProgress[bankId] = {};
+                const prog = student.wordProgress[bankId];
+                for (const wordId of sessionWords) {
+                    if (!prog[wordId]) {
+                        prog[wordId] = { status: 'learning', reviewCount: 0, learnedDate: new Date().toISOString(), reviewDates: [], postponedDays: 0 };
+                    }
+                    if (viewState.learnedInSession.includes(wordId) && viewState.learnType === 'new') {
+                        prog[wordId].status = 'done';
+                    }
+                }
+                appData.currentUser = freshTeacher;
+                saveData();
+            };
+
+            // ==================== 教师端 - 导入词库 ====================
+            function renderTeacherImport() {
+                const teacher = appData.currentUser;
+                if (!teacher || appData.userType !== 'teacher') { renderLogin(); return; }
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header">📥 导入词库</div>
+                    <p style="text-align:center;color:var(--sub);">支持TXT文件，格式示例：<br>"apple n.苹果" 或 "because of 因为"</p>
+                    <input type="file" id="file-input" accept=".txt" style="display:none;" onchange="window._handleFileImport(event)">
+                    <button class="btn primary" style="width:100%;padding:20px;" onclick="document.getElementById('file-input').click()">选择TXT文件</button>
+                    <div id="import-result" style="text-align:center;color:var(--green-dark);"></div>
+                    <button class="btn" style="width:100%;" onclick="renderView('teacher_home')">← 返回</button>
+                </div>`;
+            }
+
+            window._handleFileImport = function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    const words = parseTxtContent(content);
+                    if (words.length === 0) {
+                        document.getElementById('import-result').textContent = '未能解析到有效单词，请检查格式';
+                        return;
+                    }
+                    const teacher = appData.currentUser;
+                    const freshTeacher = getTeacherById(teacher.id);
+                    const bankName = file.name.replace(/\.txt$/i, '');
+                    const bank = {
+                        id: generateId(),
+                        name: bankName,
+                        words: words,
+                        importedDate: new Date().toISOString(),
+                    };
+                    if (!freshTeacher.wordBanks) freshTeacher.wordBanks = [];
+                    // 检查重名
+                    const existing = freshTeacher.wordBanks.find(b => b.name === bankName);
+                    if (existing) {
+                        existing.words = words;
+                        existing.importedDate = new Date().toISOString();
+                    } else {
+                        freshTeacher.wordBanks.push(bank);
+                    }
+                    appData.currentUser = freshTeacher;
+                    saveData();
+                    document.getElementById('import-result').textContent = `✅ 导入成功！共 ${words.length} 个单词`;
+                    showToast(`导入成功：${words.length}个单词`);
+                };
+                reader.readAsText(file, 'UTF-8');
+            };
+
+            // ==================== 教师端 - 词库选择 ====================
+            function renderTeacherBankSelect() {
+                const teacher = appData.currentUser;
+                if (!teacher || appData.userType !== 'teacher') { renderLogin(); return; }
+                const freshTeacher = getTeacherById(teacher.id);
+                appData.currentUser = freshTeacher;
+                const banks = freshTeacher.wordBanks || [];
+                let listHtml = banks.map(b => `
+                    <div class="card row" style="justify-content:space-between;cursor:pointer;${selectedBankIdGlobal===b.id?'border:2px solid #7b9eb3;':''}" onclick="window._selectBank('${b.id}')">
+                        <div><strong>${b.name}</strong><br><span style="font-size:0.7rem;color:var(--sub);">${b.words.length}个单词</span></div>
+                        <span style="font-size:0.7rem;">${new Date(b.importedDate).toLocaleDateString()}</span>
+                    </div>
+                `).join('');
+                if (!listHtml) listHtml = '<div style="text-align:center;color:var(--sub);padding:40px;">暂无词库，请先导入</div>';
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header">📚 词库选择</div>
+                    <div class="scroll-list" style="flex:1;">${listHtml}</div>
+                    ${selectedBankIdGlobal ? `<div style="text-align:center;color:var(--green-dark);">已选择: ${(freshTeacher.wordBanks.find(b=>b.id===selectedBankIdGlobal)||{}).name||''}</div>` : ''}
+                    <button class="btn" style="width:100%;" onclick="renderView('teacher_home')">← 返回首页</button>
+                </div>`;
+            }
+
+            window._selectBank = function(bankId) {
+                selectedBankIdGlobal = bankId;
+                saveData();
+                renderView('teacher_bank_select');
+            };
+
+            // ==================== 学前检测 ====================
+            function renderTeacherPrecheck() {
+                const teacher = appData.currentUser;
+                const freshTeacher = getTeacherById(teacher.id);
+                appData.currentUser = freshTeacher;
+                const bank = getWordBankById(freshTeacher, selectedBankIdGlobal);
+                if (!bank) { showToast('请先选择词库'); renderView('teacher_home'); return; }
+                const studentId = selectedStudentIdGlobal;
+                const student = getStudentById(freshTeacher, studentId);
+
+                // 如果已有 precheckWords（来自存档），直接使用，不重新生成
+                if (viewState.precheckWords && viewState.precheckWords.length > 0) {
+                    viewState._precheckBankId = bank.id;
+                } else {
+                    const prog = student?.wordProgress?.[bank.id] || {};
+                    const doneWordIds = new Set();
+                    for (const [wid, p] of Object.entries(prog)) {
+                        if (p.status === 'done' || p.status === 'learning') doneWordIds.add(wid);
+                    }
+                    const availableWords = bank.words.filter(w => !doneWordIds.has(w.id));
+                    if (availableWords.length === 0) {
+                        showToast('该词库所有单词已完成学习！');
+                        renderView('teacher_home');
+                        return;
+                    }
+                    viewState.precheckWords = availableWords.map(w => ({ ...w, userChoice: null }));
+                    viewState._precheckBankId = bank.id;
+                }
+
+                let wordsHtml = viewState.precheckWords.map((w, i) => `
+                    <div class="word-row${w.userChoice === true ? ' correct' : w.userChoice === false ? ' wrong' : ''}" id="pw-${i}" data-clicks="0" onclick="window._togglePrecheckWord(${i})">
+                        <span class="word-text">${w.english}</span>
+                        <span class="word-meaning" id="pwm-${i}" style="display:none;">${w.chinese}</span>
+                        <button class="icon-btn" style="background:#dcece2;color:#3d5a48;" onclick="event.stopPropagation();window._precheckCorrect(${i})">✔</button>
+                        <button class="icon-btn" style="background:#fce8e8;color:#5a3d3d;" onclick="event.stopPropagation();window._precheckWrong(${i})">✘</button>
+                    </div>
+                `).join('');
+
+                appEl.innerHTML = `
+                    <div class="page active">
+                        <div class="page-header" style="display:flex;align-items:center;gap:8px;">
+                            <button class="btn tiny" onclick="window._endLearningEarly()">← 返回</button>
+                            <span style="flex:1;">学前检测</span>
+                            <span style="font-size:0.7rem;color:var(--sub);" id="timer-display"></span>
+                        </div>
+                        <div class="scroll-list" style="flex:1;">${wordsHtml}</div>
+                        <div class="fixed-bar">
+                            <span>待学: <strong id="wrong-count">${viewState.precheckWords.filter(w=>w.userChoice===false).length}</strong></span>
+                            <button class="btn primary" id="start-learn-btn" onclick="window._goToLearning()">开始学习</button>
+                        </div>
+                    </div>`;
+                window._updateTimerDisplay();
+            }
+
+            // 以下所有交互函数必须放在 renderTeacherPrecheck 外部，且只定义一次
+            window._updatePrecheckUI = function() {
+                const wrongCount = viewState.precheckWords.filter(w => w.userChoice === false).length;
+                const el = document.getElementById('wrong-count');
+                if (el) el.textContent = wrongCount;
+            };
+
+            window._togglePrecheckWord = function(index) {
+                const row = document.getElementById('pw-' + index);
+                if (!row) return;
+                let clicks = parseInt(row.getAttribute('data-clicks') || '0');
+                const w = viewState.precheckWords[index];
+                const meaningEl = document.getElementById('pwm-' + index);
+                if (!meaningEl || !w) return;
+
+                if (clicks === 0) {
+                    speakWord(w.english);                // 第一次：只发音
+                } else {
+                    speakWord(w.english);
+                    // 从第二次开始，根据奇偶决定显示/隐藏
+                    meaningEl.style.display = (clicks % 2 === 1) ? 'inline' : 'none';
+                }
+                row.setAttribute('data-clicks', clicks + 1);
+            };
+
+            window._precheckCorrect = function(index) {
+                viewState.precheckWords[index].userChoice = true;
+                const row = document.getElementById('pw-' + index);
+                if (row) { row.classList.add('correct'); row.classList.remove('wrong'); }
+                window._updatePrecheckUI();
+            };
+
+            window._precheckWrong = function(index) {
+                viewState.precheckWords[index].userChoice = false;
+                const row = document.getElementById('pw-' + index);
+                if (row) { row.classList.add('wrong'); row.classList.remove('correct'); }
+                window._updatePrecheckUI();
+            };
+
+            window._goToLearning = function() {
+                const wrongWords = viewState.precheckWords.filter(w => w.userChoice === false);
+                if (wrongWords.length === 0) {
+                    const allMarkedCorrect = viewState.precheckWords.every(w => w.userChoice === true);
+                    if (allMarkedCorrect && viewState.precheckWords.length > 0) {
+                        showToast('全对！非常棒！这个词库已经没有需要再学习的单词啦！');
+                        if (window._timerInterval) clearInterval(window._timerInterval);
+                        viewState.learnTimerActive = false;
+                        pausedRemainingTime = 0;
+                        pausedLearnType = null;
+                        appData.learningState = null;
+                        saveData();
+                        window._archiveLearningSession(true);
+                        renderView('teacher_home');
+                    } else {
+                        showToast('请标记需要学习的单词');
+                    }
+                    return;
+                }
+                viewState.wrongInPrecheck = wrongWords.map(w => w.id);
+                viewState.learnedInSession = viewState.precheckWords.filter(w => w.userChoice === true).map(w => w.id);
+                const groups = [];
+                for (let i = 0; i < wrongWords.length; i += 5) {
+                    groups.push(wrongWords.slice(i, i + 5));
+                }
+                viewState.learningGroups = groups;
+                viewState.currentGroupIndex = 0;
+                viewState.snipWords = [];
+                viewState.checkoffWords = [];
+                renderView('teacher_learning');
+            };
+
+            window._endLearningEarly = function() {
+                if (window._timerInterval) clearInterval(window._timerInterval);
+                viewState.learnTimerActive = false;
+                pausedRemainingTime = viewState.learnTimerRemaining || 0;
+                pausedLearnType = viewState.learnType || null;
+                saveTimerState();
+                viewState.pausedView = currentView;
+                saveLearningState();
+                window._archiveLearningSession(true);
+                saveData();
+                renderView('teacher_home');
+            };
+
+            window._updateTimerDisplay = function() {
+                const el = document.getElementById('timer-display');
+                if (!el) return;
+                const rem = viewState.learnTimerRemaining || 0;
+                const mins = Math.floor(rem / 60);
+                const secs = Math.floor(rem % 60);
+                el.textContent = `⏱ ${mins}:${secs.toString().padStart(2,'0')}`;
+                if (viewState.learnTimerActive && rem > 0) {
+                    setTimeout(window._updateTimerDisplay, 1000);
+                }
+            };
+
+            // ==================== 开始学习 ====================
+            function renderTeacherLearning() {
+                const group = viewState.learningGroups[viewState.currentGroupIndex] || [];
+                let wordsHtml = group.map((w, i) => `
+                    <div class="word-row" id="lw-${i}" data-clicks="0" onclick="window._toggleLearnWord(${i})">
+                        <span class="word-text">${w.english}</span>
+                        <span class="word-meaning" id="lwm-${i}" style="display:none;">${w.chinese}</span>
+                    </div>
+                `).join('');
+
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header" style="display:flex;align-items:center;gap:8px;">
+                        <button class="btn tiny" onclick="window._endLearningEarly()">← 返回</button>
+                        <span style="flex:1;">开始学习 (组${viewState.currentGroupIndex+1}/${viewState.learningGroups.length})</span>
+                        <span style="font-size:0.7rem;color:var(--sub);" id="timer-display2"></span>
+                    </div>
+                    <div class="scroll-list" style="flex:1;">${wordsHtml}</div>
+                    <div class="fixed-bar">
+                        <button class="btn" id="prev-group-btn" ${viewState.currentGroupIndex===0?'disabled':''} onclick="window._prevGroup()">上一组</button>
+                        <button class="btn" id="next-group-btn" ${viewState.currentGroupIndex>=viewState.learningGroups.length-1?'disabled':''} onclick="window._nextGroup()">下一组</button>
+                        <button class="btn warn" onclick="window._goToSnip()">✂ 剪纸条</button>
+                    </div>
+                </div>`;
+                window._updateTimerDisplay2 = function() {
+                    const el = document.getElementById('timer-display2');
+                    if (!el) return;
+                    const rem = viewState.learnTimerRemaining || 0;
+                    const mins = Math.floor(rem / 60);
+                    const secs = Math.floor(rem % 60);
+                    el.textContent = `⏱ ${mins}:${secs.toString().padStart(2,'0')}`;
+                    if (viewState.learnTimerActive && rem > 0) setTimeout(window._updateTimerDisplay2, 1000);
+                };
+                window._updateTimerDisplay2();
+                // 记录被点击过的单词
+                window._clickedInLearning = new Set();
+            }
+
+            window._toggleLearnWord = function(index) {
+                const row = document.getElementById('lw-' + index);
+                if (!row) return;
+                let clicks = parseInt(row.getAttribute('data-clicks') || '0');
+                const group = viewState.learningGroups[viewState.currentGroupIndex];
+                const w = group ? group[index] : null;
+                const meaningEl = document.getElementById('lwm-' + index);
+                if (!meaningEl || !w) return;
+
+                if (clicks === 0) {
+                    speakWord(w.english);
+                } else {
+                    speakWord(w.english);
+                    meaningEl.style.display = (clicks % 2 === 1) ? 'inline' : 'none';
+                }
+                // 只要点过就标记
+                if (!window._clickedInLearning) window._clickedInLearning = new Set();
+                window._clickedInLearning.add(w.id);
+                row.setAttribute('data-clicks', clicks + 1);
+            };
+
+            window._prevGroup = function() {
+                if (viewState.currentGroupIndex > 0) {
+                    viewState.currentGroupIndex--;
+                    renderView('teacher_learning');
+                }
+            };
+            window._nextGroup = function() {
+                if (viewState.currentGroupIndex < viewState.learningGroups.length - 1) {
+                    viewState.currentGroupIndex++;
+                    renderView('teacher_learning');
+                }
+            };
+
+            window._goToSnip = function() {
+                // 收集所有被点击过的单词 + 当前组单词
+                const allClicked = new Set(window._clickedInLearning || []);
+                const currentGroup = viewState.learningGroups[viewState.currentGroupIndex] || [];
+                for (const w of currentGroup) allClicked.add(w.id);
+                // 获取所有学习组中的单词
+                const allLearningWords = [];
+                const seen = new Set();
+                for (const g of viewState.learningGroups) {
+                    for (const w of g) {
+                        if (!seen.has(w.id)) { seen.add(w.id);
+                            allLearningWords.push(w); }
+                    }
+                }
+
+                viewState.snipWords = allLearningWords.filter(w => allClicked.has(w.id));
+                if (viewState.snipWords.length === 0) viewState.snipWords = [...allLearningWords];
+                viewState.snipRemaining = [...viewState.snipWords];
+                renderView('teacher_snip');
+            };
+
+            // ==================== 剪纸条 ====================
+            function renderTeacherSnip() {
+                const words = viewState.snipRemaining || [];
+                let wordsHtml = words.map((w, i) => `
+                    <div class="word-row" id="snip-${i}" style="justify-content:space-between;">
+                        <span style="flex:1;cursor:pointer;" onclick="window._snipClickWord(${i})">
+                            <span class="word-text">${w.english}</span>
+                            <span class="word-meaning" id="snipm-${i}" style="display:none;">${w.chinese}</span>
+                        </span>
+                        <button class="icon-btn" style="background:#fce8e8;" onclick="window._snipCut(${i})">✂</button>
+                    </div>
+                `).join('');
+                if (!wordsHtml) wordsHtml = '<div style="text-align:center;padding:40px;color:var(--sub);">所有纸条已剪完！</div>';
+
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header" style="display:flex;align-items:center;gap:8px;">
+                        <button class="btn tiny" onclick="window._endLearningEarly()">← 返回</button>
+                        <span style="flex:1;">✂ 剪纸条</span>
+                    </div>
+                    <div class="scroll-list" style="flex:1;">${wordsHtml}</div>
+                    <div class="fixed-bar">
+                        <span>剩余: ${words.length} 个</span>
+                        <button class="btn success" onclick="window._goToCheckoff()" ${words.length===0?'':'disabled'}>进入打钩</button>
+                    </div>
+                </div>`;
+            }
+
+            window._snipClickWord = function(index) {
+                const w = viewState.snipRemaining[index];
+                const meaningEl = document.getElementById('snipm-' + index);
+                if (meaningEl && w && w.english) {
+                    speakWord(w.english);
+                    if (meaningEl.style.display === 'none') {
+                        meaningEl.style.display = 'inline';
+                    }
+                }
+            };
+
+            window._snipCut = function(index) {
+                playSnipSound();
+                const w = viewState.snipRemaining[index];
+                if (w) speakWord(w.english);
+                const meaningEl = document.getElementById('snipm-' + index);
+                if (meaningEl) meaningEl.style.display = 'inline';
+                // 移除该项
+                viewState.snipRemaining.splice(index, 1);
+                if (viewState.snipRemaining.length === 0) {
+                    setTimeout(() => window._goToCheckoff(), 400);
+                } else {
+                    renderView('teacher_snip');
+                }
+            };
+
+            window._goToCheckoff = function() {
+                viewState.checkoffRemaining = [...viewState.snipWords];
+                renderView('teacher_checkoff');
+            };
+
+            // ==================== 打钩 ====================
+            function renderTeacherCheckoff() {
+                const words = viewState.checkoffRemaining || [];
+                let wordsHtml = words.map((w, i) => `
+                    <div class="word-row" id="co-${i}" style="justify-content:space-between;">
+                        <span style="flex:1;cursor:pointer;" onclick="window._checkoffClickWord(${i})">
+                            <span class="word-text">${w.english}</span>
+                            <span class="word-meaning" id="com-${i}" style="display:none;">${w.chinese}</span>
+                        </span>
+                        <button class="icon-btn" style="background:#dcece2;color:#3d5a48;" onclick="window._checkoffTick(${i})">✔</button>
+                    </div>
+                `).join('');
+                if (!wordsHtml) wordsHtml = '<div style="text-align:center;padding:40px;color:var(--sub);">全部打钩完成！</div>';
+
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header" style="display:flex;align-items:center;gap:8px;">
+                        <button class="btn tiny" onclick="window._endLearningEarly()">← 返回</button>
+                        <span style="flex:1;">✔ 打钩</span>
+                    </div>
+                    <div class="scroll-list" style="flex:1;">${wordsHtml}</div>
+                    <div class="fixed-bar">
+                        <span>剩余: ${words.length} 个</span>
+                    </div>
+                </div>`;
+            }
+
+            window._checkoffClickWord = function(index) {
+                const w = viewState.checkoffRemaining[index];
+                const meaningEl = document.getElementById('com-' + index);
+                if (meaningEl && w && w.english) {
+                    speakWord(w.english);
+                    if (meaningEl.style.display === 'none') {
+                        meaningEl.style.display = 'inline';
+                    }
+                }
+            };
+
+            window._checkoffTick = function(index) {
+                playDingSound();
+                viewState.checkoffRemaining.splice(index, 1);
+                if (viewState.checkoffRemaining.length === 0) {
+                    window._showPostSnipOptions();
+                } else {
+                    renderView('teacher_checkoff');
+                }
+            };
+
+            window._showPostSnipOptions = function() {
+                const totalGroups = viewState.learningGroups.length;
+                const currentIdx = viewState.currentGroupIndex;
+                const isLastGroup = (currentIdx >= totalGroups - 1);
+                let html = `<h3>✨ 本组完成！</h3><div style="display:flex;flex-direction:column;gap:8px;">`;
+                html += `<button class="btn primary" onclick="hideOverlay();window._chooseMixedGroups()">混组检查</button>`;
+                if (!isLastGroup) {
+                    html += `<button class="btn success" onclick="hideOverlay();window._doContinueLearning()">继续学习</button>`;
+                }
+                html += `<button class="btn" onclick="hideOverlay();renderView('teacher_postcheck')">学后检测</button>`;
+                html += `</div>`;
+                showOverlay(`<div class="modal">${html}</div>`);
+            };
+
+            window._chooseMixedGroups = function() {
+                const completedGroups = viewState.currentGroupIndex + 1;
+                if (completedGroups < 2) {
+                    showToast('请再学一组');
+                    return;
+                }
+                if (completedGroups === 2) {
+                    showOverlay(`
+                        <div class="modal">
+                            <h3>混组检查</h3>
+                            <p>可选择混2组</p>
+                            <button class="btn primary" onclick="hideOverlay();window._doMixedCheck(2)">混2组</button>
+                            <button class="btn" onclick="hideOverlay()">取消</button>
+                            <p style="font-size:0.7rem;color:var(--sub);">混3组需要再学一组</p>
+                        </div>
+                    `);
+                } else {
+                    showOverlay(`
+                        <div class="modal">
+                            <h3>混组检查</h3>
+                            <p>选择混合组数</p>
+                            <button class="btn primary" onclick="hideOverlay();window._doMixedCheck(2)">混2组</button>
+                            <button class="btn primary" onclick="hideOverlay();window._doMixedCheck(3)">混3组</button>
+                            <button class="btn" onclick="hideOverlay()">取消</button>
+                        </div>
+                    `);
+                }
+            };
+
+            window._doMixedCheck = function(numGroups = 0) {
+                const allWords = [];
+                const seen = new Set();
+                const startGroup = Math.max(0, viewState.currentGroupIndex - numGroups + 1);
+                for (let gIdx = startGroup; gIdx <= viewState.currentGroupIndex; gIdx++) {
+                    const g = viewState.learningGroups[gIdx];
+                    if (g) {
+                        for (const w of g) {
+                            if (!seen.has(w.id)) { seen.add(w.id); allWords.push(w); }
+                        }
+                    }
+                }
+                viewState.snipWords = [...allWords];
+                viewState.snipRemaining = [...allWords];
+                viewState._isMixedCheck = true;
+                hideOverlay();
+                renderView('teacher_snip');
+            };
+
+            window._doContinueLearning = function() {
+                viewState.currentGroupIndex++;
+                if (viewState.currentGroupIndex >= viewState.learningGroups.length) {
+                    hideOverlay();
+                    renderView('teacher_postcheck');
+                } else {
+                    viewState.snipWords = [];
+                    viewState.snipRemaining = [];
+                    viewState.checkoffRemaining = [];
+                    viewState._isMixedCheck = false;
+                    hideOverlay();
+                    renderView('teacher_learning');
+                }
+            };
+
+            // 重写goToCheckoff以处理混组检查后的选项
+            const origGoToCheckoff = window._goToCheckoff;
+            window._goToCheckoff = function() {
+                viewState.checkoffRemaining = [...viewState.snipWords];
+                const origTick = window._checkoffTick;
+                window._checkoffTick = function(index) {
+                    playDingSound();
+                    viewState.checkoffRemaining.splice(index, 1);
+                    if (viewState.checkoffRemaining.length === 0) {
+                        if (viewState._isMixedCheck) {
+                            viewState._isMixedCheck = false;
+                            window._showPostSnipOptions();   // 改为直接调用
+                        } else {
+                            window._showPostSnipOptions();
+                        }
+                    } else {
+                        renderView('teacher_checkoff');
+                    }
+                };
+                renderView('teacher_checkoff');
+            };
+
+            // ==================== 学后检测 ====================
+            function renderTeacherPostcheck() {
+                const allLearningWords = [];
+                const seen = new Set();
+                for (const g of viewState.learningGroups) {
+                    for (const w of g) { if (!seen.has(w.id)) { seen.add(w.id);
+                            allLearningWords.push({ ...w, userChoice: null }); } }
+                }
+                viewState.postcheckWords = allLearningWords;
+                let wordsHtml = allLearningWords.map((w, i) => `
+                    <div class="word-row${w.userChoice === true ? ' correct' : w.userChoice === false ? ' wrong' : ''}" id="postw-${i}" data-clicks="0" onclick="window._togglePostWord(${i})">
+                        <span class="word-text">${w.english}</span>
+                        <span class="word-meaning" id="postm-${i}" style="display:none;">${w.chinese}</span>
+                        <button class="icon-btn" style="background:#dcece2;color:#3d5a48;" onclick="event.stopPropagation();window._postCorrect(${i})">✔</button>
+                        <button class="icon-btn" style="background:#fce8e8;color:#5a3d3d;" onclick="event.stopPropagation();window._postWrong(${i})">✘</button>
+                    </div>
+                `).join('');
+
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header">📝 学后检测</div>
+                    <div class="scroll-list" style="flex:1;">${wordsHtml}</div>
+                    <div class="fixed-bar">
+                        <span></span> <!-- 占位保持布局 -->
+                        <button class="btn primary" id="end-session-btn" disabled onclick="window._finishSession()">结束学习</button>
+                    </div>
+                </div>`;
+                window._updatePostcheckUI = function() {
+                    const checked = viewState.postcheckWords.filter(w => w.userChoice !== null).length;
+                    const btn = document.getElementById('end-session-btn');
+                    if (btn) btn.disabled = checked < viewState.postcheckWords.length;
+                };
+            }
+
+            window._togglePostWord = function(index) {
+                const row = document.getElementById('postw-' + index);
+                if (!row) return;
+                let clicks = parseInt(row.getAttribute('data-clicks') || '0');
+                const w = viewState.postcheckWords[index];
+                const meaningEl = document.getElementById('postm-' + index);
+                if (!meaningEl || !w) return;
+
+                if (clicks === 0) {
+                    speakWord(w.english);
+                } else {
+                    speakWord(w.english);
+                    meaningEl.style.display = (clicks % 2 === 1) ? 'inline' : 'none';
+                }
+                row.setAttribute('data-clicks', clicks + 1);
+            };
+
+            window._postCorrect = function(index) {
+                viewState.postcheckWords[index].userChoice = true;
+                const row = document.getElementById('postw-' + index);
+                if (row) { row.classList.add('correct'); row.classList.remove('wrong'); }
+                window._updatePostcheckUI();
+            };
+
+            window._postWrong = function(index) {
+                viewState.postcheckWords[index].userChoice = false;
+                const row = document.getElementById('postw-' + index);
+                if (row) { row.classList.add('wrong'); row.classList.remove('correct'); }
+                window._updatePostcheckUI();
+            };
+
+            window._finishSession = function() {
+                const correctInPost = viewState.postcheckWords.filter(w => w.userChoice === true).map(w => w.id);
+                viewState.learnedInSession = viewState.learnedInSession.filter(id => !correctInPost.includes(id));
+                appData.learningStateNew = null;
+                const wrongInPost = viewState.postcheckWords.filter(w => w.userChoice === false).map(w => w.id);
+                for (const wid of wrongInPost) {
+                    if (!viewState.wrongInPrecheck.includes(wid)) viewState.wrongInPrecheck.push(wid);
+                }
+                window._archiveLearningSession();
+                if (window._timerInterval) clearInterval(window._timerInterval);
+                viewState.learnTimerActive = false;
+
+                pausedRemainingTime = viewState.learnTimerRemaining || 0;
+                pausedLearnType = viewState.learnType || 'new';
+                viewState.pausedView = 'teacher_precheck';
+                saveLearningState();
+
+                appData.learningStateReview = null;
+                saveData();
+                showToast('学习完成！');
+                renderView('teacher_home');
+            };
+
+            // ==================== 教师端 - 开始复习 ====================
+            function renderTeacherReviewHome() {
+                const teacher = appData.currentUser;
+                const freshTeacher = getTeacherById(teacher.id);
+                appData.currentUser = freshTeacher;
+                const studentId = selectedStudentIdGlobal;
+                const student = getStudentById(freshTeacher, studentId);
+                if (!student) { showToast('请先选择学生');
+                    renderView('teacher_students'); return; }
+                const bankId = selectedBankIdGlobal;
+                const bank = bankId ? getWordBankById(freshTeacher, bankId) : null;
+                const prog = student.wordProgress?.[bankId] || {};
+                // 统计各复习次数
+                const boxes = {};
+                for (let i = 0; i <= 10; i++) boxes[i] = [];
+                for (const [wid, p] of Object.entries(prog)) {
+                    if (p.status === 'done') { boxes[0].push(wid); continue; }
+                    const rc = p.reviewCount || 0;
+                    const need = Math.max(0, 10 - rc);
+                    if (need >= 1 && need <= 10) boxes[need].push(wid);
+                    else if (need <= 0) boxes[0].push(wid);
+                }
+                const totalReviewWords = Object.values(boxes).flat().length;
+
+                let boxesHtml = '';
+                for (let i = 10; i >= 0; i--) {
+                    const count = (boxes[i] || []).length;
+                    const cls = i === 0 ? 'done-box' : (count > 0 ? 'filled' : '');
+                    boxesHtml += `
+                        <div class="review-box ${cls}" onclick="window._selectReviewBox(${i})" style="cursor:${count>0?'pointer':'default'};">
+                            <div style="font-size:1.3rem;font-weight:800;">${i}</div>
+                            <div style="font-size:0.65rem;">${i===0?'已完成':`需${i}次`}</div>
+                            <div style="font-size:0.7rem;">${count}词</div>
+                        </div>`;
+                }
+
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header">🔄 开始复习</div>
+                    <p style="text-align:center;font-size:0.8rem;color:var(--sub);">学生: ${student.name} | 词库: ${bank?.name||'未选择'}</p>
+                    <div class="grid-5">${boxesHtml}</div>
+                    <button class="btn primary" style="width:100%;padding:14px;" onclick="window._startReviewAll()">开始复习 (${totalReviewWords}词)</button>
+                    <button class="btn" style="width:100%;" onclick="renderView('teacher_home')">← 返回首页</button>
+                </div>`;
+                window._reviewBoxes = boxes;
+            }
+
+            window._selectReviewBox = function(boxNum) {
+                const words = window._reviewBoxes?.[boxNum] || [];
+                if (words.length === 0) return;
+                viewState.reviewTargetBox = boxNum;
+                viewState.reviewTargetWords = [...words];
+                window._startReviewFlow();
+            };
+
+            window._startReviewAll = function() {
+                const allWords = [];
+                for (let i = 10; i >= 1; i--) {
+                    allWords.push(...(window._reviewBoxes[i] || []));
+                }
+                if (allWords.length === 0) { showToast('没有需要复习的单词'); return; }
+                viewState.reviewTargetBox = -1; // all
+                viewState.reviewTargetWords = [...allWords];
+                window._startReviewFlow();
+            };
+
+            window._startReviewFlow = function() {
+                const teacher = appData.currentUser;
+                const freshTeacher = getTeacherById(teacher.id);
+                appData.currentUser = freshTeacher;
+                const studentId = selectedStudentIdGlobal;
+                const student = getStudentById(freshTeacher, studentId);
+                if (!student) { showToast('请先选择学生'); return; }
+
+                // 检查暂停
+                if (restoreTimerState()) {
+                    // 共用倒计时
+                    viewState.learnTimerRemaining = pausedRemainingTime;
+                    viewState.learnTimerActive = true;
+                    pausedRemainingTime = 0;
+                    pausedLearnType = null;
+
+                    // 恢复复习的学习进度（来自 learningStateReview）
+                    const ls = appData.learningStateReview;
+                    if (ls) {
+                        viewState.precheckWords = ls.precheckWords || [];
+                        viewState.learningGroups = ls.learningGroups || [];
+                        viewState.currentGroupIndex = ls.currentGroupIndex || 0;
+                        viewState.snipWords = ls.snipWords || [];
+                        viewState.snipRemaining = ls.snipRemaining || [];
+                        viewState.checkoffRemaining = ls.checkoffRemaining || [];
+                        viewState._rPostWords = ls._rPostWords || [];
+                        viewState.reviewTargetWords = ls.reviewTargetWords || [];
+                        viewState.reviewTargetBox = ls.reviewTargetBox;
+                        viewState.learnDuration = ls.learnDuration;
+                        viewState.learnStartTime = ls.learnStartTime;
+                        viewState.learnType = 'review';
+                    }
+                    let resumeView = viewState.pausedView || 'teacher_review_precheck';
+                    delete viewState.pausedView;
+
+                    if (resumeView === 'teacher_review_snip' && viewState.snipRemaining && viewState.snipRemaining.length === 0) {
+                        viewState.checkoffRemaining = viewState.snipWords ? [...viewState.snipWords] : [];
+                        resumeView = 'teacher_review_checkoff';
+                    }
+                    renderView(resumeView);
+                    if (resumeView === 'teacher_review_checkoff' && viewState.checkoffRemaining && viewState.checkoffRemaining.length === 0) {
+                        setTimeout(() => window._showReviewPostSnipOptions(), 100);
+                    }
+                    window._startLearnTimer();
+                    return;
+                }
+
+                if ((student.remainingHours || 0) < 0.25) { showToast('课时不足，请充值'); return; }
+                showOverlay(`
+                    <div class="modal">
+                        <h3>选择复习时长</h3>
+                        <p>剩余课时: ${(student.remainingHours||0).toFixed(1)}h</p>
+                        <div class="row" style="justify-content:center;">
+                            <button class="btn success" onclick="window._confirmReviewDuration(0.5)">0.5小时</button>
+                            <button class="btn primary" onclick="window._confirmReviewDuration(1)">1小时</button>
+                        </div>
+                        <button class="btn" style="margin-top:8px;" onclick="hideOverlay()">取消</button>
+                    </div>
+                `);
+            };
+
+            window._confirmReviewDuration = function(hours) {
+                const teacher = appData.currentUser;
+                const freshTeacher = getTeacherById(teacher.id);
+                appData.currentUser = freshTeacher;
+                appData.learningStateReview = null;
+                const studentId = selectedStudentIdGlobal;
+                const student = getStudentById(freshTeacher, studentId);
+                if (!student || (student.remainingHours || 0) < hours) {
+                    hideOverlay();
+                    showToast('课时不足，请充值');
+                    return;
+                }
+                hideOverlay();
+                appData.timerState = null;
+                appData.learningStateReview = null; 
+                appData.learningState = null;
+                saveData();
+                viewState.learnDuration = hours;
+                viewState.learnStartTime = new Date().toISOString();
+                viewState.learnTimerRemaining = hours * 3600;
+                viewState.learnTimerActive = true;
+                viewState.learnType = 'review';
+                viewState.wrongInPrecheck = [];
+                viewState.learnedInSession = [];
+                viewState.learningGroups = [];
+                viewState.currentGroupIndex = 0;
+                viewState.snipWords = [];
+                viewState.checkoffWords = [];
+                // 获取目标单词的完整信息
+                const bank = getWordBankById(freshTeacher, selectedBankIdGlobal);
+                const targetWords = viewState.reviewTargetWords;
+                const fullWords = (bank?.words || []).filter(w => targetWords.includes(w.id));
+                viewState.precheckWords = fullWords.map(w => ({ ...w, userChoice: null }));
+                viewState._precheckBankId = selectedBankIdGlobal;
+                renderView('teacher_review_precheck');
+                window._startLearnTimer();
+            };
+
+            function renderTeacherReviewPrecheck() {
+                // 与学前检测类似
+                let wordsHtml = viewState.precheckWords.map((w, i) => `
+                    <div class="word-row${w.userChoice === true ? ' correct' : w.userChoice === false ? ' wrong' : ''}" id="rpw-${i}" data-clicks="0" onclick="window._toggleRPreWord(${i})">
+                        <span class="word-text">${w.english}</span>
+                        <span class="word-meaning" id="rpm-${i}" style="display:none;">${w.chinese}</span>
+                        <button class="icon-btn" style="background:#dcece2;color:#3d5a48;" onclick="event.stopPropagation();window._rPreCorrect(${i})">✔</button>
+                        <button class="icon-btn" style="background:#fce8e8;color:#5a3d3d;" onclick="event.stopPropagation();window._rPreWrong(${i})">✘</button>
+                    </div>
+                `).join('');
+                const selCount = viewState.precheckWords.filter(w => w.userChoice !== null).length;
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header">复习-学前检测 <span id="timer-display3" style="font-size:0.7rem;"></span></div>
+                    <div class="scroll-list" style="flex:1;">${wordsHtml}</div>
+                    <div class="fixed-bar">
+                        <span>待复习: <strong id="r-wrong-count">${viewState.precheckWords.filter(w=>w.userChoice===false).length}</strong></span>
+                        <button class="btn primary" id="r-go-learn-btn" onclick="window._rGoLearn()">开始复习</button>
+                    </div>
+                </div>`;
+                window._updateTimerDisplay3 = function() {
+                    const el = document.getElementById('timer-display3');
+                    if (!el) return;
+                    const rem = viewState.learnTimerRemaining || 0;
+                    el.textContent =
+                        `⏱ ${Math.floor(rem/60)}:${Math.floor(rem%60).toString().padStart(2,'0')}`;
+                    if (viewState.learnTimerActive && rem > 0) setTimeout(window._updateTimerDisplay3, 1000);
+                };
+                window._updateTimerDisplay3();
+            }
+            window._toggleRPreWord = function(i) {
+                const row = document.getElementById('rpw-' + i);
+                if (!row) return;
+                let clicks = parseInt(row.getAttribute('data-clicks') || '0');
+                const w = viewState.precheckWords[i];
+                const el = document.getElementById('rpm-' + i);
+                if (!el || !w) return;
+
+                if (clicks === 0) {
+                    speakWord(w.english);
+                } else {
+                    speakWord(w.english);
+                    el.style.display = (clicks % 2 === 1) ? 'inline' : 'none';
+                }
+                row.setAttribute('data-clicks', clicks + 1);
+            };
+            // 替换 _rPreCorrect
+            window._rPreCorrect = function(i) {
+                const w = viewState.precheckWords[i];
+                if (!w || w.userChoice !== null) return;
+                w.userChoice = true;
+                const row = document.getElementById('rpw-' + i);
+                if (row) { row.classList.add('correct'); row.classList.remove('wrong'); }
+
+                // 更新学生进度
+                const teacher = appData.currentUser;
+                const freshTeacher = getTeacherById(teacher.id);
+                appData.currentUser = freshTeacher;
+                const studentId = selectedStudentIdGlobal;
+                const student = getStudentById(freshTeacher, studentId);
+                const bankId = selectedBankIdGlobal;
+                if (student && bankId) {
+                    if (!student.wordProgress) student.wordProgress = {};
+                    if (!student.wordProgress[bankId]) student.wordProgress[bankId] = {};
+                    const prog = student.wordProgress[bankId];
+                    if (prog[w.id]) {
+                        prog[w.id].reviewCount = (prog[w.id].reviewCount || 0) + 1;
+                        prog[w.id].reviewDates = prog[w.id].reviewDates || [];
+                        prog[w.id].reviewDates.push(new Date().toISOString());
+                        if (prog[w.id].reviewCount >= 10) prog[w.id].status = 'done';
+                    } else {
+                        prog[w.id] = { status: 'learning', reviewCount: 1, learnedDate: new Date().toISOString(), reviewDates: [new Date().toISOString()], postponedDays: 0 };
+                    }
+                }
+                saveData();
+                window._updateRPreUI();
+            };
+
+            window._updateRPreUI = function() {
+                const wrongCount = viewState.precheckWords.filter(w => w.userChoice === false).length;
+                const el = document.getElementById('r-wrong-count');
+                if (el) el.textContent = wrongCount;
+            };
+            window._rPreWrong = function(i) {
+                viewState.precheckWords[i].userChoice = false;
+                document.getElementById('rpw-' + i)?.classList.add('wrong');
+                window._updateRPreUI();
+            };
+            window._rGoLearn = function() {
+                const wrong = viewState.precheckWords.filter(w => w.userChoice === false);
+                if (wrong.length === 0) {
+                    const allMarkedCorrect = viewState.precheckWords.every(w => w.userChoice === true);
+                    if (allMarkedCorrect && viewState.precheckWords.length > 0) {
+                        showToast('本次复习正确率百分百，非常棒！');
+                        if (window._timerInterval) clearInterval(window._timerInterval);
+                        viewState.learnTimerActive = false;
+                        pausedRemainingTime = 0;
+                        pausedLearnType = null;
+                        appData.learningState = null;
+                        saveData();
+                        window._archiveLearningSession(true);
+                        renderView('teacher_review_home');
+                    } else {
+                        showToast('请标记需要复习的单词');
+                    }
+                    return;
+                }
+                viewState.wrongInPrecheck = wrong.map(w => w.id);
+                viewState.learnedInSession = viewState.precheckWords.filter(w => w.userChoice === true).map(w => w.id);
+                const groups = [];
+                for (let i = 0; i < wrong.length; i += 5) groups.push(wrong.slice(i, i + 5));
+                viewState.learningGroups = groups;
+                viewState.currentGroupIndex = 0;
+                viewState.snipWords = [];
+                viewState.checkoffRemaining = [];
+                renderView('teacher_review_learning');
+            };
+
+            function renderTeacherReviewLearning() {
+                const group = viewState.learningGroups[viewState.currentGroupIndex] || [];
+                let h = group.map((w, i) => `
+                    <div class="word-row" id="rlw-${i}" data-clicks="0" onclick="window._toggleRLWord(${i})">
+                        <span class="word-text">${w.english}</span>
+                        <span class="word-meaning" id="rlm-${i}" style="display:none;">${w.chinese}</span>
+                    </div>`).join('');
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header">复习学习 ${viewState.currentGroupIndex+1}/${viewState.learningGroups.length}</div>
+                    <div class="scroll-list">${h}</div>
+                    <div class="fixed-bar">
+                        <button class="btn" onclick="window._rPrevGroup()">上一组</button>
+                        <button class="btn" onclick="window._rNextGroup()">下一组</button>
+                        <button class="btn warn" onclick="window._rGoSnip()">✂ 剪纸条</button>
+                    </div>
+                </div>`;
+                window._rClicked = new Set();
+                window._rPrevGroup = function() {
+                    if (viewState.currentGroupIndex > 0) {
+                        viewState.currentGroupIndex--;
+                        renderView('teacher_review_learning');
+                    }
+                };
+                window._rNextGroup = function() {
+                    if (viewState.currentGroupIndex < viewState.learningGroups.length - 1) {
+                        viewState.currentGroupIndex++;
+                        renderView('teacher_review_learning');
+                    }
+                };
+            }
+            window._toggleRLWord = function(i) {
+                const row = document.getElementById('rlw-' + i);
+                if (!row) return;
+                let clicks = parseInt(row.getAttribute('data-clicks') || '0');
+                const g = viewState.learningGroups[viewState.currentGroupIndex];
+                const w = g ? g[i] : null;
+                const el = document.getElementById('rlm-' + i);
+                if (!el || !w) return;
+
+                if (clicks === 0) {
+                    speakWord(w.english);
+                } else {
+                    speakWord(w.english);
+                    el.style.display = (clicks % 2 === 1) ? 'inline' : 'none';
+                }
+                if (!window._rClicked) window._rClicked = new Set();
+                window._rClicked.add(w.id);
+                row.setAttribute('data-clicks', clicks + 1);
+            };
+            window._rGoSnip = function() {
+                const allW = [];
+                const seen = new Set();
+                for (const g of viewState.learningGroups) for (const w of g) { if (!seen.has(w.id)) { seen.add(w.id);
+                        allW.push(w); } }
+                viewState.snipWords = allW.filter(w => window._rClicked.has(w.id));
+                if (viewState.snipWords.length === 0) viewState.snipWords = [...allW];
+                viewState.snipRemaining = [...viewState.snipWords];
+                renderView('teacher_review_snip');
+            };
+
+            function renderTeacherReviewSnip() {
+                const words = viewState.snipRemaining || [];
+                let h = words.map((w, i) => `
+                    <div class="word-row" style="justify-content:space-between;">
+                        <span onclick="window._rSnipClick(${i})" style="flex:1;cursor:pointer;">
+                            <span class="word-text">${w.english}</span>
+                            <span class="word-meaning" id="rsm-${i}" style="display:none;">${w.chinese}</span>
+                        </span>
+                        <button class="icon-btn" style="background:#fce8e8;" onclick="window._rSnipCut(${i})">✂</button>
+                    </div>`).join('');
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header" style="display:flex;align-items:center;gap:8px;">
+                        <button class="btn tiny" onclick="window._endLearningEarly()">← 返回</button>
+                        <span style="flex:1;">复习-剪纸条</span>
+                    </div>
+                    <div class="scroll-list">${h||'<p>全部完成</p>'}</div>
+                <div class="fixed-bar"><span>剩余:${words.length}</span><button class="btn success" onclick="window._rGoCheckoff()" ${words.length>0?'disabled':''}>打钩</button></div></div>`;
+            }
+            window._rSnipClick = function(i) {
+                const w = viewState.snipRemaining[i];
+                const el = document.getElementById('rsm-' + i);
+                if (el && w && w.english) {
+                    speakWord(w.english);
+                    if (el.style.display === 'none') {
+                        el.style.display = 'inline';
+                    }
+                }
+            };
+            window._rSnipCut = function(i) {
+                playSnipSound();
+                const w = viewState.snipRemaining[i];
+                if (w) speakWord(w.english);
+                document.getElementById('rsm-' + i) && (document.getElementById('rsm-' + i).style.display = 'inline');
+                viewState.snipRemaining.splice(i, 1);
+                viewState.snipRemaining.length === 0 ? setTimeout(() => window._rGoCheckoff(), 400) : renderView(
+                    'teacher_review_snip');
+            };
+            window._rGoCheckoff = function() {
+                viewState.checkoffRemaining = [...viewState.snipWords];
+                renderView('teacher_review_checkoff');
+            };
+
+            function renderTeacherReviewCheckoff() {
+                const words = viewState.checkoffRemaining || [];
+                let h = words.map((w, i) => `
+                    <div class="word-row" style="justify-content:space-between;">
+                        <span onclick="window._rCheckClick(${i})" style="flex:1;cursor:pointer;">
+                            <span class="word-text">${w.english}</span>
+                            <span class="word-meaning" id="rcm-${i}" style="display:none;">${w.chinese}</span>
+                        </span>
+                        <button class="icon-btn" style="background:#dcece2;color:#3d5a48;" onclick="window._rCheckTick(${i})">✔</button>
+                    </div>`).join('');
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header" style="display:flex;align-items:center;gap:8px;">
+                        <button class="btn tiny" onclick="window._endLearningEarly()">← 返回</button>
+                        <span style="flex:1;">复习-打钩</span>
+                    </div>
+                    <div class="scroll-list">${h||'<p>全部完成</p>'}</div>
+                <div class="fixed-bar"><span>剩余:${words.length}</span></div></div>`;
+            }
+            window._rCheckClick = function(i) {
+                const w = viewState.checkoffRemaining[i];
+                const el = document.getElementById('rcm-' + i);
+                if (el && w && w.english) {
+                    speakWord(w.english);
+                    if (el.style.display === 'none') {
+                        el.style.display = 'inline';
+                    }
+                }
+            };
+            window._rCheckTick = function(i) {
+                playDingSound();
+                viewState.checkoffRemaining.splice(i, 1);
+                if (viewState.checkoffRemaining.length === 0) {
+                    // 原有弹窗逻辑替换为调用指定方法
+                    window._showReviewPostSnipOptions();
+                } else {
+                    renderView('teacher_review_checkoff');
+                }
+            };
+            window._showReviewPostSnipOptions = function() {
+                const totalGroups = viewState.learningGroups.length;
+                const isLast = (viewState.currentGroupIndex >= totalGroups - 1);
+                let html = `<h3>复习组完成</h3>`;
+                if (!isLast) {
+                    html += `<button class="btn success" onclick="hideOverlay();viewState.currentGroupIndex++; viewState.currentGroupIndex >= viewState.learningGroups.length ? renderView('teacher_review_postcheck') : renderView('teacher_review_learning')">继续</button>`;
+                }
+                html += `<button class="btn" onclick="hideOverlay();renderView('teacher_review_postcheck')">学后检测</button>`;
+                showOverlay(`<div class="modal">${html}</div>`);
+            };
+
+            function renderTeacherReviewPostcheck() {
+                const allW = [];
+                const seen = new Set();
+                for (const g of viewState.learningGroups) for (const w of g) { if (!seen.has(w.id)) { seen.add(w.id);
+                        allW.push({ ...w, userChoice: null }); } }
+                viewState._rPostWords = allW;
+                let h = allW.map((w, i) => `
+                    <div class="word-row${w.userChoice === true ? ' correct' : w.userChoice === false ? ' wrong' : ''}" id="rpostw-${i}" data-clicks="0" onclick="window._toggleRPost(${i})">
+                        <span class="word-text">${w.english}</span>
+                        <span class="word-meaning" id="rpostm-${i}" style="display:none;">${w.chinese}</span>
+                        <button class="icon-btn" style="background:#dcece2;" onclick="event.stopPropagation();window._rPostCorrect(${i})">✔</button>
+                        <button class="icon-btn" style="background:#fce8e8;" onclick="event.stopPropagation();window._rPostWrong(${i})">✘</button>
+                    </div>
+                `).join('');
+                appEl.innerHTML = `
+                <div class="page active"><div class="page-header">复习-学后检测</div><div class="scroll-list">${h}</div>
+                <div class="fixed-bar"><span>已检:<strong id="rpost-c">0</strong>/${allW.length}</span>
+                <button class="btn primary" id="rpost-end" disabled onclick="window._rFinish()">结束复习</button></div></div>`;
+                window._updateRPostUI = function() {
+                    const c = viewState._rPostWords.filter(w => w.userChoice !== null).length;
+                    document.getElementById('rpost-c') && (document.getElementById('rpost-c').textContent = c);
+                    document.getElementById('rpost-end') && (document.getElementById('rpost-end').disabled = c < viewState
+                        ._rPostWords.length);
+                };
+            }
+            window._toggleRPost = function(i) {
+                const row = document.getElementById('rpostw-' + i);
+                if (!row) return;
+                let clicks = parseInt(row.getAttribute('data-clicks') || '0');
+                const w = viewState._rPostWords ? viewState._rPostWords[i] : null;
+                const el = document.getElementById('rpostm-' + i);
+                if (!el || !w) return;
+
+                if (clicks === 0) {
+                    speakWord(w.english);
+                } else {
+                    speakWord(w.english);
+                    el.style.display = (clicks % 2 === 1) ? 'inline' : 'none';
+                }
+                row.setAttribute('data-clicks', clicks + 1);
+            };
+            window._rPostCorrect = function(i) {
+                viewState._rPostWords[i].userChoice = true;
+                const row = document.getElementById('rpostw-' + i);
+                if (row) { row.classList.add('correct'); row.classList.remove('wrong'); }
+                window._updateRPostUI();
+            };
+            window._rPostWrong = function(i) {
+                viewState._rPostWords[i].userChoice = false;
+                const row = document.getElementById('rpostw-' + i);
+                if (row) { row.classList.add('wrong'); row.classList.remove('correct'); }
+                window._updateRPostUI();
+            };
+            window._rFinish = function() {
+                const teacher = appData.currentUser;
+                const freshTeacher = getTeacherById(teacher.id);
+                const studentId = selectedStudentIdGlobal;
+                const student = getStudentById(freshTeacher, studentId);
+                const bankId = selectedBankIdGlobal;
+                if (student && bankId) {
+                    if (!student.wordProgress) student.wordProgress = {};
+                    if (!student.wordProgress[bankId]) student.wordProgress[bankId] = {};
+                    const prog = student.wordProgress[bankId];
+                    const correctIds = viewState._rPostWords.filter(w => w.userChoice === true).map(w => w.id);
+                    for (const wid of correctIds) {
+                        if (prog[wid]) {
+                            prog[wid].reviewCount = (prog[wid].reviewCount || 0) + 1;
+                            prog[wid].reviewDates = prog[wid].reviewDates || [];
+                            prog[wid].reviewDates.push(new Date().toISOString());
+                            if (prog[wid].reviewCount >= 10) prog[wid].status = 'done';
+                        }
+                    }
+                    if (viewState.learnDuration) {
+                        student.remainingHours = Math.max(0, (student.remainingHours || 0) - viewState.learnDuration);
+                        freshTeacher.remainingHours = Math.max(0, (freshTeacher.remainingHours || 0) - viewState.learnDuration);
+                    }
+                }
+                appData.currentUser = freshTeacher;
+                appData.learningStateReview = null;
+                window._archiveLearningSession();
+                if (window._timerInterval) clearInterval(window._timerInterval);
+                viewState.learnTimerActive = false;
+
+                pausedRemainingTime = viewState.learnTimerRemaining || 0;
+                pausedLearnType = viewState.learnType || 'review';
+                viewState.pausedView = 'teacher_review_precheck';
+                saveLearningState();
+
+                saveData();
+                showToast('复习完成！');
+                renderView('teacher_review_home');
+            };
+
+            // ==================== 教师端 - 打印学习报告 ====================
+            function renderTeacherPrint() {
+                const teacher = appData.currentUser;
+                const freshTeacher = getTeacherById(teacher.id);
+                appData.currentUser = freshTeacher;
+                const studentId = selectedStudentIdGlobal;
+                const student = getStudentById(freshTeacher, studentId);
+                const records = (freshTeacher.learningRecords || []).filter(r => r.studentId === studentId).sort((a, b) =>
+                    new Date(b.startTime) - new Date(a.startTime));
+                let listHtml = records.map(r => {
+                    const bank = getWordBankById(freshTeacher, r.wordBankId);
+                    const d = new Date(r.startTime);
+                    const dateStr =
+                        `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+                    return `
+                    <div class="card row" style="justify-content:space-between;cursor:pointer;" onclick="window._printRecord('${r.id}')">
+                        <div><strong>${dateStr}</strong><br><span style="font-size:0.7rem;">${bank?.name||'未知'} | ${r.duration}h | ${r.words.length}词</span></div>
+                        <span>🖨️</span>
+                    </div>`;
+                }).join('');
+                if (!listHtml) listHtml = '<div style="text-align:center;padding:30px;color:var(--sub);">暂无学习记录</div>';
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header">🖨️ 打印学习报告</div>
+                    <div class="scroll-list">${listHtml}</div>
+                    <button class="btn" onclick="renderView('teacher_home')">← 返回</button>
+                </div>`;
+                window._printRecords = records;
+            }
+
+            window._printRecord = function(recordId) {
+                const teacher = appData.currentUser;
+                const freshTeacher = getTeacherById(teacher.id);
+                const record = (freshTeacher.learningRecords || []).find(r => r.id === recordId);
+                if (!record) return;
+                const bank = getWordBankById(freshTeacher, record.wordBankId);
+                const student = getStudentById(freshTeacher, record.studentId);
+                const d = new Date(record.startTime);
+                const dateStr =
+                    `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+                // 21天遗忘曲线
+                const curveDays = [1, 2, 3, 5, 7, 9, 12, 14, 17, 21];
+                let calendarHtml = '<table style="width:100%;border-collapse:collapse;margin:10px 0;">';
+                for (let row = 0; row < 4; row++) {
+                    calendarHtml += '<tr>';
+                    for (let col = 0; col < 5; col++) {
+                        const idx = row * 5 + col;
+                        if (idx < curveDays.length) {
+                            const day = curveDays[idx];
+                            const targetDate = new Date(d);
+                            targetDate.setDate(targetDate.getDate() + day);
+                            const tdStr =
+                                `${targetDate.getFullYear()}-${(targetDate.getMonth()+1).toString().padStart(2,'0')}-${targetDate.getDate().toString().padStart(2,'0')}`;
+                            calendarHtml +=
+                                `<td style="border:1px solid #ccc;padding:6px;text-align:center;font-size:0.7rem;">第${day}天<br>${tdStr}<br><span style="display:inline-block;width:40px;height:18px;border-bottom:1px solid #999;"></span></td>`;
+                        } else {
+                            calendarHtml +=
+                                '<td style="border:1px solid #eee;padding:6px;"></td>';
+                        }
+                    }
+                    calendarHtml += '</tr>';
+                }
+                calendarHtml += '</table>';
+                // 单词表格
+                const recordWords = (bank?.words || []).filter(w => record.words.includes(w.id));
+                let wordTableHtml = '<table style="width:100%;border-collapse:collapse;">';
+                for (let i = 0; i < recordWords.length; i += 2) {
+                    wordTableHtml += '<tr>';
+                    for (let j = 0; j < 2; j++) {
+                        const w = recordWords[i + j];
+                        if (w) {
+                            wordTableHtml += `<td style="border:1px solid #ccc;padding:4px;font-weight:600;">${w.english}</td><td style="border:1px solid #ccc;padding:4px;font-size:0.75rem;">${w.chinese}</td>`;
+                        } else {
+                            wordTableHtml += '<td style="border:1px solid #eee;padding:4px;"></td><td></td>';
+                        }
+                    }
+                    wordTableHtml += '</tr>';
+                }
+                wordTableHtml += '</table>';
+                // ---------- 新增：仅单词表格 ----------
+                let wordsOnlyHtml = '<table style="width:100%;border-collapse:collapse;">';
+                for (let i = 0; i < recordWords.length; i += 2) {
+                    wordsOnlyHtml += '<tr>';
+                    for (let j = 0; j < 2; j++) {
+                        const w = recordWords[i + j];
+                        if (w) {
+                            wordsOnlyHtml += `<td style="border:1px solid #ccc;padding:4px;font-weight:600;">${w.english}</td><td style="border:1px solid #ccc;padding:4px;"></td>`;
+                        } else {
+                            wordsOnlyHtml += '<td style="border:1px solid #eee;padding:4px;"></td><td style="border:1px solid #eee;padding:4px;"></td>';
+                        }
+                    }
+                    wordsOnlyHtml += '</tr>';
+                }
+                wordsOnlyHtml += '</table>';
+
+                // ---------- 新增：仅释义表格 ----------
+                let meaningsOnlyHtml = '<table style="width:100%;border-collapse:collapse;">';
+                for (let i = 0; i < recordWords.length; i += 2) {
+                    meaningsOnlyHtml += '<tr>';
+                    for (let j = 0; j < 2; j++) {
+                        const w = recordWords[i + j];
+                        if (w) {
+                            meaningsOnlyHtml += `<td style="border:1px solid #ccc;padding:4px;"></td><td style="border:1px solid #ccc;padding:4px;font-size:0.75rem;">${w.chinese}</td>`;
+                        } else {
+                            meaningsOnlyHtml += '<td style="border:1px solid #eee;padding:4px;"></td><td style="border:1px solid #eee;padding:4px;"></td>';
+                        }
+                    }
+                    meaningsOnlyHtml += '</tr>';
+                }
+                meaningsOnlyHtml += '</table>';
+
+                const reportHtml = `
+                    <html><head><meta charset="UTF-8"><title>学习报告</title>
+                    <style>body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;padding:20px;color:#333;max-width:700px;margin:auto;}h2{text-align:center;}table{margin:8px 0;}@media print{body{print-color-adjust:exact;}}</style></head>
+                    <body>
+                        <h2>📝 学习报告</h2>
+                        <p><strong>学生:</strong> ${student?.name||'未知'} | <strong>时间:</strong> ${dateStr} | <strong>时长:</strong> ${record.duration}h | <strong>词库:</strong> ${bank?.name||'未知'}</p>
+                        <div style="page-break-after: always;">
+                            <h3>21天抗遗忘打卡</h3>${calendarHtml}
+                        </div>
+                        <div style="page-break-after: always;">
+                            <h3>学习单词 (${recordWords.length}个)</h3>${wordTableHtml}
+                        </div>
+                        <div style="page-break-after: always;">
+                            <h3>单词默写表</h3>${wordsOnlyHtml}
+                        </div>
+                        <div>
+                            <h3>释义默写表</h3>${meaningsOnlyHtml}
+                        </div>
+                        <script>window.onload=function(){window.print();}<\/script>
+                    </body></html>
+                `;
+                const win = window.open('', '_blank', 'width=700,height=900');
+                if (win) { win.document.write(reportHtml);
+                    win.document.close(); } else { showToast('请允许弹出窗口以打印报告'); }
+            };
+
+            // ==================== 学生端 ====================
+            function renderStudentHome() {
+                const studentData = appData.currentUser;
+                if (!studentData || appData.userType !== 'student') { renderLogin(); return; }
+                const teacher = getTeacherById(studentData.teacherId);
+                const student = teacher ? getStudentById(teacher, studentData.id) : null;
+                if (!student) { showToast('数据异常');
+                    renderLogin(); return; }
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header">📖 学生端</div>
+                    <div style="text-align:center;">
+                        <strong>${student.name}</strong><br>
+                        <span style="font-size:0.8rem;">账号:${student.username}</span><br>
+                        <span style="font-size:1rem;font-weight:700;">总课时: ${(student.remainingHours||0).toFixed(1)}h</span>
+                    </div>
+                    <button class="btn primary" style="width:100%;padding:16px;" onclick="renderView('student_review')">📅 抗遗忘复习</button>
+                    <button class="btn" style="width:100%;padding:16px;" onclick="renderView('student_records')">📋 复习记录</button>
+                    <button class="btn" style="width:100%;background:#c4b89e;" onclick="saveLearningState(); appData.currentUser=null; appData.userType=null; saveData(); renderView('login');">退出登录</button>
+                </div>`;
+            }
+
+            function renderStudentReview() {
+                const studentData = appData.currentUser;
+                const teacher = getTeacherById(studentData.teacherId);
+                const student = getStudentById(teacher, studentData.id);
+                if (!student) { renderLogin(); return; }
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const todayTime = today.getTime();
+
+                // 检查并处理延期
+                const curveDays = [1, 2, 3, 5, 7, 9, 12, 14, 17, 21];
+                let needSave = false;
+                for (const [bankId, prog] of Object.entries(student.wordProgress || {})) {
+                    for (const [wid, p] of Object.entries(prog)) {
+                        if (p.status !== 'learning') continue;
+                        const learnedDate = new Date(p.learnedDate);
+                        learnedDate.setHours(0, 0, 0, 0);
+                        const rc = p.reviewCount || 0;
+                        if (rc >= curveDays.length) continue;
+                        const postponed = p.postponedDays || 0;
+                        const targetDay = new Date(learnedDate.getTime() + (curveDays[rc] + postponed) * 86400000);
+                        targetDay.setHours(0, 0, 0, 0);
+                        if (targetDay.getTime() < todayTime) {
+                            const diffDays = Math.round((todayTime - targetDay.getTime()) / 86400000);
+                            if (diffDays > 0) {
+                                p.postponedDays = postponed + diffDays;
+                                needSave = true;
+                            }
+                        }
+                    }
+                }
+                if (needSave) saveData();
+
+                // 收集今天需要复习的单词
+                const reviewWords = [];
+                for (const [bankId, prog] of Object.entries(student.wordProgress || {})) {
+                    for (const [wid, p] of Object.entries(prog)) {
+                        if (p.status !== 'learning') continue;
+                        const learnedDate = new Date(p.learnedDate);
+                        learnedDate.setHours(0, 0, 0, 0);
+                        const rc = p.reviewCount || 0;
+                        if (rc >= curveDays.length) continue;
+                        const postponed = p.postponedDays || 0;
+                        const targetDay = new Date(learnedDate.getTime() + (curveDays[rc] + postponed) * 86400000);
+                        targetDay.setHours(0, 0, 0, 0);
+                        if (targetDay.getTime() === todayTime) {
+                            const reviewDates = (p.reviewDates || []).map(d => { const nd = new Date(d); nd.setHours(0,0,0,0); return nd.getTime(); });
+                            if (!reviewDates.includes(todayTime)) {
+                                const bank = getWordBankById(teacher, bankId);
+                                const word = bank?.words.find(w => w.id === wid);
+                                if (word) reviewWords.push({ ...word, bankId, userChoice: null }); // null:未选, true:正确, false:错误
+                            }
+                        }
+                    }
+                }
+                viewState._studentReviewWords = reviewWords;
+                viewState._studentReviewWrong = [];
+
+                if (reviewWords.length === 0) {
+                    appEl.innerHTML = `
+                    <div class="page active"><div class="page-header">抗遗忘复习</div>
+                    <p style="text-align:center;padding:40px;">今天没有需要复习的单词！🎉</p>
+                    <button class="btn" onclick="renderView('student_home')">← 返回</button></div>`;
+                    return;
+                }
+
+                // 渲染单词列表
+                let wordsHtml = reviewWords.map((w, i) => `
+                    <div class="word-row" id="srw-${i}" data-clicks="0" onclick="window._studentToggleWord(${i})">
+                        <span class="word-text">${w.english}</span>
+                        <span class="word-meaning" id="srwm-${i}" style="display:none;">${w.chinese}</span>
+                        <button class="icon-btn" style="background:#dcece2;color:#3d5a48;" onclick="event.stopPropagation();window._studentCorrect(${i})">✔</button>
+                        <button class="icon-btn" style="background:#fce8e8;color:#5a3d3d;" onclick="event.stopPropagation();window._studentWrong(${i})">✘</button>
+                    </div>
+                `).join('');
+
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header">抗遗忘复习 (${reviewWords.length}词)</div>
+                    <div class="scroll-list" style="flex:1;">${wordsHtml}</div>
+                    <div class="fixed-bar">
+                        <span></span>
+                        <button class="btn primary" onclick="window._studentFinishReview()">结束复习</button>
+                    </div>
+                </div>`;
+            }
+
+            // 点击单词行：发音 + 显示/隐藏释义
+            window._studentToggleWord = function(index) {
+                const w = viewState._studentReviewWords[index];
+                if (!w) return;
+                speakWord(w.english);
+                const meaningEl = document.getElementById('srwm-' + index);
+                if (meaningEl) {
+                    meaningEl.style.display = meaningEl.style.display === 'none' ? 'inline' : 'none';
+                }
+            };
+
+            // 正确按钮：标记为正确，变色
+            window._studentCorrect = function(index) {
+                const w = viewState._studentReviewWords[index];
+                if (!w || w.userChoice !== null) return; // 已标记，忽略
+                w.userChoice = true;
+                const row = document.getElementById('srw-' + index);
+                if (row) { row.classList.add('correct'); row.classList.remove('wrong'); }
+                // 显示释义（如果未显示）
+                const meaningEl = document.getElementById('srwm-' + index);
+                if (meaningEl && meaningEl.style.display === 'none') meaningEl.style.display = 'inline';
+            };
+
+            // 错误按钮：标记为错误，变色，记录错误单词
+            window._studentWrong = function(index) {
+                const w = viewState._studentReviewWords[index];
+                if (!w || w.userChoice !== null) return;
+                w.userChoice = false;
+                const row = document.getElementById('srw-' + index);
+                if (row) { row.classList.add('wrong'); row.classList.remove('correct'); }
+                const meaningEl = document.getElementById('srwm-' + index);
+                if (meaningEl && meaningEl.style.display === 'none') meaningEl.style.display = 'inline';
+                // 记录错误单词ID
+                viewState._studentReviewWrong.push(w.id);
+            };
+
+            // 结束复习：提交结果
+            window._studentFinishReview = function() {
+                const words = viewState._studentReviewWords;
+                const unmarked = words.filter(w => w.userChoice === null);
+                if (unmarked.length > 0) {
+                    showToast('请先标记所有单词');
+                    return;
+                }
+                // 更新进度
+                const studentData = appData.currentUser;
+                const teacher = getTeacherById(studentData.teacherId);
+                const student = getStudentById(teacher, studentData.id);
+                const today = new Date().toISOString();
+                for (const w of words) {
+                    const prog = student.wordProgress?.[w.bankId]?.[w.id];
+                    if (prog) {
+                        prog.reviewDates = prog.reviewDates || [];
+                        prog.reviewDates.push(today);
+                        prog.reviewCount = (prog.reviewCount || 0) + 1;
+                        if (prog.reviewCount >= 10) prog.status = 'done';
+                        if (!prog.postponedDays) prog.postponedDays = 0;
+                    }
+                }
+                // 记录复习
+                if (!student.reviewRecords) student.reviewRecords = [];
+                student.reviewRecords.push({
+                    id: generateId(),
+                    time: today,
+                    words: words.map(w => w.id),
+                    wrongIds: viewState._studentReviewWrong,
+                });
+                saveData();
+                showToast('复习完成！');
+                renderView('student_home');
+            };
+
+            function renderStudentRecords() {
+                const studentData = appData.currentUser;
+                const teacher = getTeacherById(studentData.teacherId);
+                const student = getStudentById(teacher, studentData.id);
+                const records = (student?.reviewRecords || []).sort((a, b) => new Date(b.time) - new Date(a.time));
+                let html = records.map(r => {
+                    const d = new Date(r.time);
+                    const ds = `${d.getMonth()+1}月${d.getDate()}日${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+                    // 收集完整单词信息（含中文）
+                    const wordsList = [];
+                    for (const wid of r.words) {
+                        for (const b of (teacher?.wordBanks || [])) {
+                            const w = b.words.find(ww => ww.id === wid);
+                            if (w) {
+                                wordsList.push({ ...w, isWrong: (r.wrongIds || []).includes(wid) });
+                                break;
+                            }
+                        }
+                    }
+                    // 生成单词行，每行一个单词（英文 + 中文），错误单词行有浅红背景
+                    let wh = wordsList.map(w => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; margin:2px 0; border-radius:6px; ${w.isWrong ? 'background:#fce8e8;' : ''}">
+                            <span style="font-weight:600; font-size:0.85rem;">${w.english}</span>
+                            <span style="font-size:0.75rem; color:var(--sub); text-align:right;">${w.chinese}</span>
+                        </div>
+                    `).join('');
+                    return `<div class="card">
+                        <strong>${ds}</strong>
+                        <div style="max-height:200px; overflow-y:auto; margin-top:6px;">
+                            ${wh}
+                        </div>
+                        <span style="font-size:0.7rem; display:block; margin-top:4px;">${wordsList.length}词 | 错误:${(r.wrongIds||[]).length}</span>
+                    </div>`;
+                }).join('');
+                if (!html) html = '<p style="text-align:center;padding:30px;">暂无复习记录</p>';
+                appEl.innerHTML = `
+                <div class="page active"><div class="page-header">复习记录</div>
+                <div class="scroll-list">${html}</div>
+                <button class="btn" onclick="renderView('student_home')">← 返回</button></div>`;
+            }
+
+            // ==================== 管理员端 ====================
+            function renderAdminPanel() {
+                if (appData.userType !== 'admin') { renderLogin(); return; }
+                const teachers = appData.teachers.filter(t => t.role !== 'admin').sort((a, b) => new Date(b.createdDate) -
+                    new Date(a.createdDate));
+                let listHtml = teachers.map(t => `
+                    <div class="card row" style="justify-content:space-between;flex-wrap:wrap;">
+                        <div style="flex:1;min-width:120px;">
+                            <strong>${t.username}</strong>
+                            <br><span style="font-size:0.7rem;">总池:${(t.totalHours||0).toFixed(1)}h | 剩余:${(t.remainingHours||0).toFixed(1)}h</span>
+                            <br><span style="font-size:0.65rem;">创建:${new Date(t.createdDate).toLocaleDateString()}</span>
+                        </div>
+                        <div class="row" style="gap:4px;">
+                            <button class="btn tiny primary" onclick="window._adminSetHours('${t.id}')">设置课时</button>
+                            <button class="btn tiny warn" onclick="window._adminDeleteTeacher('${t.id}')">删除</button>
+                        </div>
+                    </div>`).join('');
+                if (!listHtml) listHtml = '<p style="text-align:center;padding:30px;">暂无教师账号</p>';
+                appEl.innerHTML = `
+                <div class="page active">
+                    <div class="page-header">🔧 管理员面板</div>
+                    <input class="input" id="admin-search" placeholder="搜索教师账号..." oninput="window._adminFilter()">
+                    <div class="scroll-list" id="admin-list">${listHtml}</div>
+                    <div class="card row" style="gap:8px;flex-wrap:wrap;">
+                        <input class="input" id="new-teacher-username" placeholder="教师账号" style="flex:1;min-width:80px;">
+                        <input class="input" id="new-teacher-password" placeholder="密码" style="flex:1;min-width:80px;">
+                        <button class="btn primary small" onclick="window._adminAddTeacher()">注册教师</button>
+                    </div>
+                    <button class="btn" onclick="saveLearningState(); appData.currentUser=null; appData.userType=null; saveData(); renderView('login');">退出登录</button>
+                </div>`;
+                window._adminTeachers = teachers;
+            }
+
+            window._adminFilter = function() {
+                const q = (document.getElementById('admin-search')?.value || '').toLowerCase();
+                const filtered = window._adminTeachers.filter(t => t.username.toLowerCase().includes(q));
+                document.getElementById('admin-list').innerHTML = filtered.map(t => `
+                    <div class="card row" style="justify-content:space-between;flex-wrap:wrap;">
+                        <div><strong>${t.username}</strong><br><span style="font-size:0.7rem;">总池:${(t.totalHours||0).toFixed(1)}h</span></div>
+                        <div class="row" style="gap:4px;">
+                            <button class="btn tiny primary" onclick="window._adminSetHours('${t.id}')">设置课时</button>
+                            <button class="btn tiny warn" onclick="window._adminDeleteTeacher('${t.id}')">删除</button>
+                        </div>
+                    </div>`).join('') || '<p style="text-align:center;padding:30px;">无匹配</p>';
+            };
+
+            window._adminAddTeacher = function() {
+                const username = document.getElementById('new-teacher-username')?.value.trim();
+                const password = document.getElementById('new-teacher-password')?.value.trim();
+                if (!username || !password) { showToast('请填写完整'); return; }
+                if (appData.teachers.find(t => t.username === username)) { showToast('账号已存在'); return; }
+                const newTeacher = {
+                    id: generateId(),
+                    username,
+                    password,
+                    role: 'teacher',
+                    totalHours: 10,
+                    remainingHours: 10,
+                    createdDate: new Date().toISOString(),
+                    students: [],
+                    wordBanks: [],
+                    learningRecords: [],
+                };
+                appData.teachers.push(newTeacher);
+                appData.adminTotalHoursMap[newTeacher.id] = 10;
+                saveData();
+                showToast('教师注册成功');
+                renderView('admin_panel');
+            };
+
+            window._adminSetHours = function(teacherId) {
+                const teacher = getTeacherById(teacherId);
+                if (!teacher) return;
+                showOverlay(`
+                    <div class="modal">
+                        <h3>设置课时 - ${teacher.username}</h3>
+                        <p>当前总池:${(teacher.totalHours||0).toFixed(1)}h | 剩余:${(teacher.remainingHours||0).toFixed(1)}h</p>
+                        <input class="input" id="set-hours-amount" type="number" step="0.5" min="0" value="${(teacher.totalHours||10)}" style="width:100px;text-align:center;">
+                        <p style="font-size:0.7rem;">设置总课时池（小时）</p>
+                        <div class="row" style="justify-content:center;">
+                            <button class="btn primary" onclick="window._confirmSetHours('${teacherId}')">确认</button>
+                            <button class="btn" onclick="hideOverlay()">取消</button>
+                        </div>
+                    </div>`);
+            };
+
+            window._confirmSetHours = function(teacherId) {
+                const amount = parseFloat(document.getElementById('set-hours-amount')?.value);
+                if (!amount || amount < 0) { showToast('无效课时数'); return; }
+                const teacher = getTeacherById(teacherId);
+                if (!teacher) return;
+                const oldTotal = teacher.totalHours || 0;
+                teacher.totalHours = amount;
+                teacher.remainingHours = Math.max(0, teacher.remainingHours + (amount - oldTotal));
+                appData.adminTotalHoursMap[teacherId] = amount;
+                saveData();
+                hideOverlay();
+                showToast(`已设置总课时为 ${amount}h`);
+                renderView('admin_panel');
+            };
+
+            window._adminDeleteTeacher = function(teacherId) {
+                if (!confirm('确定删除该教师账号吗？')) return;
+                appData.teachers = appData.teachers.filter(t => t.id !== teacherId);
+                delete appData.adminTotalHoursMap[teacherId];
+                saveData();
+                showToast('教师已删除');
+                renderView('admin_panel');
+            };
+
+            // ==================== 初始化 ====================
+            loadData();
+            renderView('login');
+
+            window.addEventListener('beforeunload', () => {
+                if (viewState.learnTimerActive || viewState.learningGroups?.length > 0) {
+                    if (typeof window._archiveLearningSession === 'function') {
+                        window._archiveLearningSession(true);
+                    }
+                    // 保存倒计时和进度
+                    pausedRemainingTime = viewState.learnTimerRemaining || 0;
+                    pausedLearnType = viewState.learnType || null;
+                    saveTimerState();
+                    viewState.pausedView = currentView;
+                    saveLearningState();
+                }
+            });
+
+            // 暴露到全局
+            window.appData = appData;
+            window.saveData = saveData;
+            window.loadData = loadData;
+            window.renderView = renderView;
+            window.showToast = showToast;
+            window.showOverlay = showOverlay;
+            window.hideOverlay = hideOverlay;
+            window.speakWord = speakWord;
+            window.playSnipSound = playSnipSound;
+            window.playDingSound = playDingSound;
+            window.getTeacherById = getTeacherById;
+            window.getStudentById = getStudentById;
+            window.getWordBankById = getWordBankById;
+            window.viewState = viewState;
+            window.saveLearningState = saveLearningState;
+
+            console.log('✅ 仓仓单词系统已就绪');
+            console.log('管理员账号: 17872702990 | 密码: LYwinner');
+            console.log('教师可自行注册或由管理员创建');
+            console.log('支持词库格式: "apple n.苹果" 或 "because of 因为"');
+        })();
+    </script>
+</body>
+</html>
